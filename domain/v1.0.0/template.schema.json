@@ -44,6 +44,36 @@
         "Fee Collection"
       ]
     },
+    "product": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
+      "description": "Product category for this template",
+      "examples": [
+        "FX_SERVICES",
+        "PAYMENTS",
+        "LENDING",
+        "DEPOSITS"
+      ]
+    },
+    "event_type": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
+      "description": "Type of event this template processes",
+      "examples": [
+        "TRANSFER",
+        "PAYMENT",
+        "DEPOSIT",
+        "WITHDRAWAL"
+      ]
+    },
+    "category": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
+      "description": "Business category for this template",
+      "examples": [
+        "PAYMENT",
+        "FEE",
+        "INTEREST",
+        "ADJUSTMENT"
+      ]
+    },
     "description": {
       "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/longString",
       "minLength": 1,
@@ -59,6 +89,71 @@
         "Customer requests cross-border payment",
         "Monthly subscription renewal"
       ]
+    },
+    "capabilities": {
+      "type": "array",
+      "description": "Optional capability tags that opt the template into specific behaviours or overrides.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "allows_fx_transfers",
+          "allows_intercompany_transfers",
+          "skip_account_type_validation",
+          "skip_financial_statements_impact_validation"
+        ]
+      },
+      "uniqueItems": true,
+      "examples": [
+        [
+          "allows_fx_transfers",
+          "allows_intercompany_transfers"
+        ]
+      ],
+      "$comment": "New capabilities can be added via enum expansion without altering the template structure."
+    },
+    "account_code_validations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "purpose",
+          "mask",
+          "description"
+        ],
+        "properties": {
+          "purpose": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/purposeName",
+            "description": "Account purpose to validate",
+            "examples": [
+              "from",
+              "to",
+              "fee"
+            ]
+          },
+          "mask": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/globPattern",
+            "description": "Glob pattern for valid account codes",
+            "examples": [
+              "21*",
+              "400*",
+              "1[0-9]*",
+              "50[0-5]*"
+            ]
+          },
+          "description": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+            "description": "Human-readable description of the account type",
+            "examples": [
+              "Customer deposit accounts",
+              "Fee income accounts",
+              "Asset accounts"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "description": "Validations for account codes by purpose"
     },
     "accounting_treatments": {
       "type": "array",
@@ -107,50 +202,6 @@
       "minItems": 1,
       "description": "Accounting treatment classifications and policy references"
     },
-    "account_code_validations": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "purpose",
-          "mask",
-          "description"
-        ],
-        "properties": {
-          "purpose": {
-            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/purposeName",
-            "description": "Account purpose to validate",
-            "examples": [
-              "from",
-              "to",
-              "fee"
-            ]
-          },
-          "mask": {
-            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/globPattern",
-            "description": "Glob pattern for valid account codes",
-            "examples": [
-              "21*",
-              "400*",
-              "1[0-9]*",
-              "50[0-5]*"
-            ]
-          },
-          "description": {
-            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
-            "description": "Human-readable description of the account type",
-            "examples": [
-              "Customer deposit accounts",
-              "Fee income accounts",
-              "Asset accounts"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "minItems": 0,
-      "description": "Validations for account codes by purpose"
-    },
     "financial_statements_impact": {
       "type": "array",
       "items": {
@@ -198,36 +249,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "product": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
-      "description": "Product category for this template",
-      "examples": [
-        "FX_SERVICES",
-        "PAYMENTS",
-        "LENDING",
-        "DEPOSITS"
-      ]
-    },
-    "event_type": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
-      "description": "Type of event this template processes",
-      "examples": [
-        "TRANSFER",
-        "PAYMENT",
-        "DEPOSIT",
-        "WITHDRAWAL"
-      ]
-    },
-    "category": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
-      "description": "Business category for this template",
-      "examples": [
-        "PAYMENT",
-        "FEE",
-        "INTEREST",
-        "ADJUSTMENT"
-      ]
     },
     "variables": {
       "type": "array",
@@ -432,27 +453,6 @@
       "maxItems": 64,
       "description": "Transfer legs that generate the actual ledger transfers",
       "$comment": "All leg fields reference variable names. This enforces separation of logic (in variables) and data mapping (in legs)."
-    },
-    "capabilities": {
-      "type": "array",
-      "description": "Optional capability tags that opt the template into specific behaviours or overrides.",
-      "items": {
-        "type": "string",
-        "enum": [
-          "allows_fx_transfers",
-          "allows_intercompany_transfers",
-          "skip_account_type_validation",
-          "skip_financial_statements_impact_validation"
-        ]
-      },
-      "uniqueItems": true,
-      "examples": [
-        [
-          "allows_fx_transfers",
-          "allows_intercompany_transfers"
-        ]
-      ],
-      "$comment": "New capabilities can be added via enum expansion without altering the template structure."
     },
     "metadata_schema": {
       "type": "object",
