@@ -5,6 +5,7 @@
   "description": "Template defining business logic for transforming events into ledger transfers",
   "type": "object",
   "required": [
+    "$schema",
     "template_id",
     "site_id",
     "name",
