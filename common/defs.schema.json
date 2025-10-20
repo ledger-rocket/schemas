@@ -74,6 +74,27 @@
         "should_charge_fee"
       ]
     },
+    "legFieldReference": {
+      "description": "Reference used in template legs (variable or direct selector into the event context)",
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Variable name declared elsewhere in the template"
+        },
+        {
+          "type": "string",
+          "pattern": "^(event|accounts\\.[a-z][a-z0-9_]*)(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)+$",
+          "description": "Direct selector into event or enriched accounts context"
+        }
+      ],
+      "examples": [
+        "transfer_amount",
+        "event.amount",
+        "accounts.sender.account_id",
+        "accounts.receiver.ledger.currency.currency_code"
+      ]
+    },
     "purposeName": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*$",

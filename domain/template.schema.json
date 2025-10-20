@@ -362,12 +362,12 @@
             ]
           },
           "debit_account": {
-            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
-            "description": "Variable name containing the debit account ID",
-            "$comment": "Variable must contain a UUID",
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/legFieldReference",
+            "description": "Reference for the debit account (variable or direct selector)",
+            "$comment": "References an earlier variable or a direct accounts.<purpose> selector",
             "examples": [
               "from_account_id",
-              "fee_payer_account_id"
+              "accounts.payables.account_id"
             ]
           },
           "debit_account_type": {
@@ -376,12 +376,12 @@
             "$comment": "Runtime validation ensures the actual account matches this type. Prevents business logic errors."
           },
           "credit_account": {
-            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
-            "description": "Variable name containing the credit account ID",
-            "$comment": "Variable must contain a UUID",
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/legFieldReference",
+            "description": "Reference for the credit account (variable or direct selector)",
+            "$comment": "References an earlier variable or a direct accounts.<purpose> selector",
             "examples": [
               "to_account_id",
-              "fee_account_id"
+              "accounts.receiver.account_id"
             ]
           },
           "credit_account_type": {
@@ -392,30 +392,22 @@
           "amount": {
             "oneOf": [
               {
-                "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
-                "description": "Variable name containing the transfer amount"
+                "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/legFieldReference",
+                "description": "Reference for the transfer amount (variable or selector)"
               },
               {
                 "type": "integer",
                 "minimum": 1,
                 "description": "Literal integer amount in minor currency units"
-              },
-              {
-                "type": "string",
-                "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)+$",
-                "description": "Dot notation expression for accessing nested properties"
               }
             ],
-            "description": "Transfer amount - variable name, literal integer, or dot notation expression",
-            "$comment": "Can be variable reference, literal positive integer, or dot notation path",
+            "description": "Transfer amount source",
+            "$comment": "Prefer references; literals allowed for fixed adjustments",
             "examples": [
               "transfer_amount",
-              "fee_amount",
-              "1000",
-              "2500",
-              "accounts.from_account.balance",
-              "event.calculated_fee",
-              "metadata.custom_amount"
+              "event.amount",
+              "accounts.fee.amount_minor",
+              "1000"
             ]
           },
           "description": {
@@ -438,13 +430,13 @@
             "$comment": "Must match one of the types in template's accounting_treatments array"
           },
           "condition": {
-            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
-            "description": "Variable name containing boolean for conditional execution",
-            "$comment": "If variable evaluates to false, leg is skipped",
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/legFieldReference",
+            "description": "Reference to a boolean controlling conditional execution",
+            "$comment": "If the referenced value evaluates to false, the leg is skipped",
             "examples": [
               "should_execute_main",
               "should_charge_fee",
-              "is_taxable"
+              "event.extra_metadata.manual_override"
             ]
           }
         },
@@ -453,7 +445,7 @@
       "minItems": 1,
       "maxItems": 64,
       "description": "Transfer legs that generate the actual ledger transfers",
-      "$comment": "All leg fields reference variable names. This enforces separation of logic (in variables) and data mapping (in legs)."
+      "$comment": "All leg fields reference variables or whitelisted selectors, keeping business logic in variables while allowing direct context access."
     },
     "metadata_schema": {
       "type": "object",
