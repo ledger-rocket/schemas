@@ -22,7 +22,7 @@
   "properties": {
     "$schema": {
       "type": "string",
-      "pattern": "^(https://ledger-rocket.github.io/schemas/.*|/schemas/.*)$",
+      "pattern": "^https?://.+",
       "description": "Canonical path to the JSON schema that describes this template",
       "examples": [
         "/schemas/domain/template/v0.2.0.schema.json"
