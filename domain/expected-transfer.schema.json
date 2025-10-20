@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json",
+  "title": "Expected Transfer",
+  "description": "Minimal transfer format for template validation and API responses",
+  "type": "object",
+  "required": [
+    "debit_account_id",
+    "credit_account_id",
+    "amount",
+    "leg_number"
+  ],
+  "properties": {
+    "debit_account_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Debit account UUID"
+    },
+    "debit_account_name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Human-readable account name"
+    },
+    "debit_account_code": {
+      "type": "string",
+      "description": "Account code"
+    },
+    "debit_account_type": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/accountType"
+    },
+    "credit_account_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Credit account UUID"
+    },
+    "credit_account_name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Human-readable account name"
+    },
+    "credit_account_code": {
+      "type": "string",
+      "description": "Account code"
+    },
+    "credit_account_type": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/accountType"
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Transfer amount in minor units"
+    },
+    "leg_number": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 63,
+      "description": "Template leg that generated this transfer"
+    },
+    "is_rollup": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a rollup transfer"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "debit_account_id": "01920000-0000-7000-8000-000000000001",
+      "debit_account_name": "Customer Checking",
+      "debit_account_code": "2100",
+      "debit_account_type": "ASSET",
+      "credit_account_id": "01920000-0000-7000-8000-000000000002",
+      "credit_account_name": "Merchant Settlement",
+      "credit_account_code": "2200",
+      "credit_account_type": "ASSET",
+      "amount": 5000,
+      "leg_number": 1,
+      "is_rollup": false
+    },
+    {
+      "debit_account_id": "01920000-0000-7000-8000-000000000001",
+      "debit_account_name": "Customer Checking",
+      "debit_account_code": "2100",
+      "debit_account_type": "ASSET",
+      "credit_account_id": "01920000-0000-7000-8000-00000000000f",
+      "credit_account_name": "Fee Income",
+      "credit_account_code": "4000",
+      "credit_account_type": "REVENUE",
+      "amount": 25,
+      "leg_number": 2,
+      "is_rollup": false
+    }
+  ],
+  "version": "1.0.0"
+}

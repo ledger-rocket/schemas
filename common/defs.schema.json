@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/common/defs.schema.json",
+  "title": "Common Definitions",
+  "description": "Shared type $defs used across all LedgerRocket schemas",
+  "$defs": {
+    "positiveInt32": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647,
+      "description": "Positive 32-bit integer"
+    },
+    "siteId": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647,
+      "description": "Tenant identifier",
+      "examples": [
+        1,
+        42
+      ]
+    },
+    "templateId": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "description": "Template identifier",
+      "examples": [
+        132,
+        145,
+        200
+      ]
+    },
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "UUID (any RFC4122 version)",
+      "$comment": "Account IDs accept any RFC4122 UUID. Event IDs still enforce UUID v7 via event schema.",
+      "examples": [
+        "550e8400-e29b-41d4-a716-446655440000",
+        "01920000-0000-7000-8000-000000000001"
+      ]
+    },
+    "uuidV7": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "UUID v7 for time-ordering benefits",
+      "$comment": "UUID v7 provides natural time ordering for database indexing",
+      "examples": [
+        "550e8400-e29b-41d4-a716-446655440000",
+        "01920000-0000-7000-8000-000000000001"
+      ]
+    },
+    "unixTimestamp": {
+      "type": "integer",
+      "description": "Unix timestamp in milliseconds (UTC)",
+      "$comment": "Must be UTC",
+      "examples": [
+        1700746200000,
+        1735920000000
+      ]
+    },
+    "variableName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Snake_case variable name",
+      "examples": [
+        "from_account_id",
+        "fee_amount",
+        "should_charge_fee"
+      ]
+    },
+    "purposeName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "minLength": 1,
+      "maxLength": 50,
+      "description": "Account purpose identifier",
+      "examples": [
+        "from",
+        "to",
+        "fee",
+        "nostro",
+        "vostro"
+      ]
+    },
+    "upperSnakeCase": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "maxLength": 50,
+      "description": "UPPER_SNAKE_CASE identifier",
+      "examples": [
+        "FX_SERVICES",
+        "PAYMENTS",
+        "TRANSFER",
+        "PAYMENT"
+      ]
+    },
+    "accountType": {
+      "type": "string",
+      "enum": [
+        "ASSET",
+        "LIABILITY",
+        "EQUITY",
+        "REVENUE",
+        "EXPENSE"
+      ],
+      "description": "Financial statement account type",
+      "examples": [
+        "ASSET",
+        "REVENUE"
+      ]
+    },
+    "financialImpact": {
+      "type": "string",
+      "enum": [
+        "increase",
+        "increase_or_no_impact",
+        "decrease",
+        "decrease_or_no_impact",
+        "no_impact"
+      ],
+      "description": "Impact on financial statement account type",
+      "$comment": "Use conditional options (e.g., 'increase_or_no_impact') when legs have conditions"
+    },
+    "auditState": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "LIVE",
+        "DEPRECATED",
+        "REJECTED"
+      ],
+      "description": "Audit workflow state",
+      "$comment": "LIVE items are immutable and cannot be modified"
+    },
+    "auditAction": {
+      "type": "string",
+      "enum": [
+        "CREATE",
+        "SUBMIT_FOR_APPROVAL",
+        "APPROVE",
+        "REJECT",
+        "DEPRECATE",
+        "ROLLBACK",
+        "UPDATE"
+      ],
+      "description": "Action that causes state transition"
+    },
+    "emailAddress": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Email address or username",
+      "examples": [
+        "john.smith@company.com",
+        "admin",
+        "jane.doe@company.com"
+      ]
+    },
+    "shortString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Short text field"
+    },
+    "mediumString": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Medium text field"
+    },
+    "longString": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Long text field"
+    },
+    "celExpression": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "description": "CEL (Common Expression Language) expression",
+      "$comment": "Must be valid CEL syntax"
+    },
+    "contentHash": {
+      "type": "string",
+      "pattern": "^(sha256:|sha512:)?[a-f0-9]{64,128}$",
+      "description": "SHA-256 or SHA-512 hash",
+      "examples": [
+        "sha256:abcd1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab",
+        "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+      ]
+    },
+    "modelName": {
+      "type": "string",
+      "enum": [
+        "template",
+        "rule"
+      ],
+      "description": "Type of model in audit system"
+    },
+    "policyId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9./_-]*[A-Za-z0-9]$",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Accounting policy reference ID (no URI scheme)",
+      "examples": [
+        "IFRS9.B5.4.1",
+        "IAS32.DEPOSITS",
+        "INT/FEES-001",
+        "IFRS9.3.1.1",
+        "IAS21.21"
+      ]
+    },
+    "globPattern": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Glob pattern for matching",
+      "$comment": "Uses standard glob syntax: * matches any characters, ? matches single character",
+      "examples": [
+        "21*",
+        "400*",
+        "1[0-9]*",
+        "50[0-5]*"
+      ]
+    },
+    "positiveAmount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9223372036854775807,
+      "description": "Positive amount in minor currency units",
+      "$comment": "Must be positive integer, no decimals allowed",
+      "examples": [
+        5000,
+        10000,
+        250000
+      ]
+    },
+    "eventSource": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "System or service that originated the event",
+      "examples": [
+        "payment-gateway",
+        "mobile-app",
+        "backoffice",
+        "reconciliation-service",
+        "batch-processor"
+      ]
+    },
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version in MAJOR.MINOR.PATCH format",
+      "examples": [
+        "1.0.0",
+        "1.1.0",
+        "2.0.0",
+        "1.2.3"
+      ]
+    },
+    "ledgerScope": {
+      "type": "string",
+      "enum": [
+        "primary",
+        "secondary"
+      ],
+      "description": "Ledger scope for multi-ledger operations",
+      "$comment": "Primary ledger is typically the funding currency, secondary is typically the crypto or intercompany ledger",
+      "examples": [
+        "primary",
+        "secondary"
+      ]
+    },
+    "treatmentType": {
+      "type": "string",
+      "enum": [
+        "cash_movement",
+        "settlement_clearing",
+        "fee_revenue",
+        "fee_cost",
+        "accrual_interest_income",
+        "accrual_interest_expense",
+        "impairment_provision",
+        "write_off",
+        "refund_reversal"
+      ],
+      "description": "Accounting treatment classification",
+      "$comment": "Categorizes transfers for regulatory reporting and describes how the leg impacts financial statements",
+      "examples": [
+        "cash_movement",
+        "fee_revenue",
+        "settlement_clearing"
+      ]
+    }
+  },
+  "version": "1.0.0"
+}

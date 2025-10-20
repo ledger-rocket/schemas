@@ -1,0 +1,783 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/template.schema.json",
+  "title": "Template",
+  "description": "Template defining business logic for transforming events into ledger transfers",
+  "type": "object",
+  "required": [
+    "template_id",
+    "site_id",
+    "name",
+    "description",
+    "accounting_treatments",
+    "account_code_validations",
+    "product",
+    "event_type",
+    "category",
+    "variables",
+    "validations",
+    "legs",
+    "metadata_schema"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "pattern": "^/schemas/.*",
+      "description": "Canonical path to the JSON schema that describes this template",
+      "examples": [
+        "/schemas/domain/template/v0.2.0.schema.json"
+      ]
+    },
+    "template_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/templateId",
+      "$comment": "Must match the code field in legs"
+    },
+    "site_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/siteId"
+    },
+    "name": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/shortString",
+      "description": "Human-readable name for the template",
+      "examples": [
+        "Cross-Border Payment via Nostro/Vostro",
+        "Customer Deposit",
+        "Fee Collection"
+      ]
+    },
+    "description": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/longString",
+      "minLength": 1,
+      "description": "Detailed description of template purpose and behavior",
+      "examples": [
+        "Processes cross-border payments using nostro/vostro accounts with automatic fee calculation"
+      ]
+    },
+    "trigger": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+      "description": "Business event that triggers this template",
+      "examples": [
+        "Customer requests cross-border payment",
+        "Monthly subscription renewal"
+      ]
+    },
+    "accounting_treatments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type",
+          "policy_refs",
+          "description"
+        ],
+        "properties": {
+          "type": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/treatmentType",
+            "description": "Type of accounting treatment"
+          },
+          "policy_refs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/policyId",
+                  "description": "Policy reference ID"
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Optional explicit version (if omitted, resolve active version)"
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "description": "References to accounting policy documents"
+          },
+          "description": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+            "description": "Human-readable description of the accounting treatment"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "description": "Accounting treatment classifications and policy references"
+    },
+    "account_code_validations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "purpose",
+          "mask",
+          "description"
+        ],
+        "properties": {
+          "purpose": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/purposeName",
+            "description": "Account purpose to validate",
+            "examples": [
+              "from",
+              "to",
+              "fee"
+            ]
+          },
+          "mask": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/globPattern",
+            "description": "Glob pattern for valid account codes",
+            "examples": [
+              "21*",
+              "400*",
+              "1[0-9]*",
+              "50[0-5]*"
+            ]
+          },
+          "description": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+            "description": "Human-readable description of the account type",
+            "examples": [
+              "Customer deposit accounts",
+              "Fee income accounts",
+              "Asset accounts"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "description": "Validations for account codes by purpose"
+    },
+    "financial_statements_impact": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "account_type",
+          "impact",
+          "ledger_scope",
+          "description"
+        ],
+        "properties": {
+          "account_type": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/accountType"
+          },
+          "impact": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/financialImpact",
+            "description": "Net impact on this account type"
+          },
+          "ledger_scope": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/ledgerScope",
+            "description": "Ledger scope this impact applies to: 'primary' or 'secondary'"
+          },
+          "description": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+            "description": "Human-readable explanation of the impact"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "description": "Net accounting impact on financial statements by account type per ledger scope. For templates with capabilities allowing FX or intercompany transfers, each ledger scope must declare impacts for all account types touched by its legs.",
+      "$comment": "Templates with cross-ledger operations must explicitly declare impacts per scope, including no_impact when debits and credits cancel."
+    },
+    "ledger_scope_descriptions": {
+      "type": "object",
+      "description": "Human-readable descriptions for each ledger scope used by this template. Required when capabilities include FX or intercompany transfers.",
+      "properties": {
+        "primary": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "description": "Description of how this template uses the primary ledger scope."
+        },
+        "secondary": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "description": "Description of how this template uses the secondary ledger scope."
+        }
+      },
+      "additionalProperties": false
+    },
+    "product": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
+      "description": "Product category for this template",
+      "examples": [
+        "FX_SERVICES",
+        "PAYMENTS",
+        "LENDING",
+        "DEPOSITS"
+      ]
+    },
+    "event_type": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
+      "description": "Type of event this template processes",
+      "examples": [
+        "TRANSFER",
+        "PAYMENT",
+        "DEPOSIT",
+        "WITHDRAWAL"
+      ]
+    },
+    "category": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
+      "description": "Business category for this template",
+      "examples": [
+        "PAYMENT",
+        "FEE",
+        "INTEREST",
+        "ADJUSTMENT"
+      ]
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "value",
+          "description"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
+            "description": "Variable name used in legs and other expressions"
+          },
+          "value": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/celExpression",
+            "description": "CEL expression to calculate the variable value",
+            "examples": [
+              "accounts.from.account_id",
+              "amount * 50 / 10000",
+              "max(100, divide_with_bankers_rounding(amount * fee_percentage_basis_points, 10000))",
+              "amount > 1000 && !has(event.extra_metadata.fee_waived)"
+            ]
+          },
+          "description": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+            "description": "Human-readable description of what this variable represents",
+            "examples": [
+              "Source account UUID",
+              "Calculated fee with minimum of 100 minor units",
+              "Whether to charge fee"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "description": "Variables for calculations and business logic. Evaluated sequentially, can reference previous variables.",
+      "$comment": "Variables contain ALL business logic. Legs only reference variable names."
+    },
+    "validations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "expression",
+          "description"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
+            "description": "Validation rule name",
+            "examples": [
+              "minimum_amount",
+              "same_currency",
+              "account_exists"
+            ]
+          },
+          "expression": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/celExpression",
+            "description": "CEL expression that must evaluate to true",
+            "examples": [
+              "amount >= 100",
+              "accounts.from.ledger.currency.currency_code == accounts.to.ledger.currency.currency_code",
+              "accounts.from.account_id != null"
+            ]
+          },
+          "description": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+            "description": "Human-readable description of what this validation ensures",
+            "examples": [
+              "Ensure minimum transaction amount",
+              "Ensure same currency",
+              "Ensure from account exists"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "description": "Business rule validations that must all pass for the event to be processed"
+    },
+    "legs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "leg_number",
+          "debit_account",
+          "debit_account_type",
+          "credit_account",
+          "credit_account_type",
+          "amount",
+          "description",
+          "ledger_scope",
+          "treatment_type"
+        ],
+        "properties": {
+          "leg_number": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Sequential identifier for the leg",
+            "examples": [
+              1,
+              2,
+              3
+            ]
+          },
+          "debit_account": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
+            "description": "Variable name containing the debit account ID",
+            "$comment": "Variable must contain a UUID",
+            "examples": [
+              "from_account_id",
+              "fee_payer_account_id"
+            ]
+          },
+          "debit_account_type": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/accountType",
+            "description": "Expected account type for the debit account",
+            "$comment": "Runtime validation ensures the actual account matches this type. Prevents business logic errors."
+          },
+          "credit_account": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
+            "description": "Variable name containing the credit account ID",
+            "$comment": "Variable must contain a UUID",
+            "examples": [
+              "to_account_id",
+              "fee_account_id"
+            ]
+          },
+          "credit_account_type": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/accountType",
+            "description": "Expected account type for the credit account",
+            "$comment": "Runtime validation ensures the actual account matches this type. Accounting equation is preserved."
+          },
+          "amount": {
+            "oneOf": [
+              {
+                "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
+                "description": "Variable name containing the transfer amount"
+              },
+              {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Literal integer amount in minor currency units"
+              },
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)+$",
+                "description": "Dot notation expression for accessing nested properties"
+              }
+            ],
+            "description": "Transfer amount - variable name, literal integer, or dot notation expression",
+            "$comment": "Can be variable reference, literal positive integer, or dot notation path",
+            "examples": [
+              "transfer_amount",
+              "fee_amount",
+              "1000",
+              "2500",
+              "accounts.from_account.balance",
+              "event.calculated_fee",
+              "metadata.custom_amount"
+            ]
+          },
+          "description": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+            "description": "Human-readable description of this leg's purpose",
+            "examples": [
+              "Main transfer leg",
+              "Fee collection",
+              "Tax withholding"
+            ]
+          },
+          "ledger_scope": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/ledgerScope",
+            "description": "Ledger scope: 'primary' or 'secondary' for intercompany templates",
+            "$comment": "Defaults to 'primary' if not specified"
+          },
+          "treatment_type": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/treatmentType",
+            "description": "Accounting treatment type for this leg",
+            "$comment": "Must match one of the types in template's accounting_treatments array"
+          },
+          "condition": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
+            "description": "Variable name containing boolean for conditional execution",
+            "$comment": "If variable evaluates to false, leg is skipped",
+            "examples": [
+              "should_execute_main",
+              "should_charge_fee",
+              "is_taxable"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 64,
+      "description": "Transfer legs that generate the actual ledger transfers",
+      "$comment": "All leg fields reference variable names. This enforces separation of logic (in variables) and data mapping (in legs)."
+    },
+    "capabilities": {
+      "type": "array",
+      "description": "Optional capability tags that opt the template into specific behaviours or overrides.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "allows_fx_transfers",
+          "allows_intercompany_transfers",
+          "skip_account_type_validation",
+          "skip_financial_statements_impact_validation"
+        ]
+      },
+      "uniqueItems": true,
+      "examples": [
+        [
+          "allows_fx_transfers",
+          "allows_intercompany_transfers"
+        ]
+      ],
+      "$comment": "New capabilities can be added via enum expansion without altering the template structure."
+    },
+    "metadata_schema": {
+      "type": "object",
+      "description": "JSON Schema for validating event's extra_metadata field",
+      "$comment": "Must be a valid JSON Schema (draft-07 recommended for compatibility)",
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "format": "uri",
+          "examples": [
+            "https://json-schema.org/draft/2020-12/schema"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "const": "object"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object"
+        },
+        "additionalProperties": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "properties"
+      ],
+      "examples": [
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "required": [
+            "customer_name",
+            "reference"
+          ],
+          "properties": {
+            "customer_name": {
+              "type": "string",
+              "description": "Name of the customer"
+            },
+            "reference": {
+              "type": "string",
+              "description": "Transaction reference"
+            },
+            "payment_method": {
+              "type": "string",
+              "description": "Payment method used"
+            },
+            "notes": {
+              "type": "string",
+              "description": "Additional notes"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "event_request",
+          "expected_transfers"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Name of the example scenario",
+            "examples": [
+              "Standard transfer",
+              "Transfer with fee waived",
+              "Large amount with tiered fees"
+            ]
+          },
+          "description": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/longString",
+            "description": "Human-readable description of the example scenario"
+          },
+          "event_request": {
+            "$ref": "event.schema.json",
+            "description": "Sample event request for testing"
+          },
+          "expected_transfers": {
+            "type": "array",
+            "items": {
+              "$ref": "https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json"
+            },
+            "description": "Expected transfers that should be generated for validation"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "description": "Example scenarios for testing and documentation",
+      "$comment": "LIVE templates MUST have valid examples that pass all validations"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "template_id": 132,
+      "site_id": 1,
+      "name": "Cross-Border Payment via Nostro/Vostro",
+      "description": "Processes cross-border payments using nostro/vostro accounts with automatic fee calculation based on amount tiers",
+      "trigger": "Customer requests cross-border payment",
+      "financial_statements_impact": [
+        {
+          "account_type": "ASSET",
+          "impact": "decrease_or_no_impact"
+        },
+        {
+          "account_type": "EQUITY",
+          "impact": "increase_or_no_impact"
+        },
+        {
+          "account_type": "REVENUE",
+          "impact": "increase_or_no_impact"
+        }
+      ],
+      "product": "FX_SERVICES",
+      "event_type": "TRANSFER",
+      "category": "PAYMENT",
+      "variables": [
+        {
+          "name": "from_account_id",
+          "value": "accounts.from.account_id",
+          "description": "Source account UUID"
+        },
+        {
+          "name": "to_account_id",
+          "value": "accounts.to.account_id",
+          "description": "Destination account UUID"
+        },
+        {
+          "name": "fee_account_id",
+          "value": "accounts.fee.account_id",
+          "description": "Fee collection account UUID"
+        },
+        {
+          "name": "transfer_amount",
+          "value": "amount",
+          "description": "Main transfer amount"
+        },
+        {
+          "name": "fee_percentage_basis_points",
+          "value": "50",
+          "description": "Fee percentage in basis points (50 = 0.5%)"
+        },
+        {
+          "name": "fee_amount",
+          "value": "max(100, divide_with_bankers_rounding(amount * fee_percentage_basis_points, 10000))",
+          "description": "Calculated fee with minimum of 100 minor units"
+        },
+        {
+          "name": "should_execute_main",
+          "value": "amount > 1000",
+          "description": "Only execute main transfer if amount exceeds threshold"
+        },
+        {
+          "name": "should_charge_fee",
+          "value": "fee_amount > 0 && !has(event.extra_metadata.fee_waived)",
+          "description": "Charge fee unless waived"
+        }
+      ],
+      "validations": [
+        {
+          "name": "minimum_amount",
+          "expression": "amount >= 100",
+          "description": "Ensure minimum transaction amount"
+        },
+        {
+          "name": "same_currency",
+          "expression": "accounts.from.ledger.currency.currency_code == accounts.to.ledger.currency.currency_code",
+          "description": "Ensure same currency for non-FX transfers"
+        },
+        {
+          "name": "account_exists",
+          "expression": "accounts.from.account_id != null",
+          "description": "Ensure from account exists"
+        }
+      ],
+      "legs": [
+        {
+          "leg_number": 1,
+          "debit_account": "from_account_id",
+          "debit_account_type": "ASSET",
+          "credit_account": "to_account_id",
+          "credit_account_type": "ASSET",
+          "amount": "transfer_amount",
+          "code": 132,
+          "description": "Main transfer leg",
+          "condition": "should_execute_main"
+        },
+        {
+          "leg_number": 2,
+          "debit_account": "from_account_id",
+          "debit_account_type": "ASSET",
+          "credit_account": "fee_account_id",
+          "credit_account_type": "REVENUE",
+          "amount": "fee_amount",
+          "code": 132,
+          "description": "Fee collection",
+          "condition": "should_charge_fee"
+        }
+      ],
+      "account_code_validations": [
+        {
+          "purpose": "from",
+          "mask": "21*",
+          "description": "Customer deposit accounts"
+        },
+        {
+          "purpose": "to",
+          "mask": "21*",
+          "description": "Customer deposit accounts"
+        },
+        {
+          "purpose": "fee",
+          "mask": "400*",
+          "description": "Fee income accounts"
+        }
+      ],
+      "metadata_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": [
+          "customer_name",
+          "reference"
+        ],
+        "properties": {
+          "customer_name": {
+            "type": "string",
+            "description": "Name of the customer"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Transaction reference"
+          },
+          "payment_method": {
+            "type": "string",
+            "description": "Payment method used"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "name": "Standard transfer with fee",
+          "event_request": {
+            "event_id": "550e8400-e29b-41d4-a716-446655440000",
+            "template_ids": [
+              132
+            ],
+            "site_id": 1,
+            "amount": 5000,
+            "occurred_at": 1700746200000,
+            "accounts": [
+              {
+                "purpose": "from",
+                "account_id": "01920000-0000-7000-8000-000000000001"
+              },
+              {
+                "purpose": "to",
+                "account_id": "01920000-0000-7000-8000-000000000002"
+              },
+              {
+                "purpose": "fee",
+                "account_id": "01920000-0000-7000-8000-00000000000f"
+              }
+            ],
+            "extra_metadata": {
+              "customer_name": "John Doe",
+              "reference": "INV-2024-001"
+            }
+          },
+          "expected_transfers": [
+            {
+              "debit_account_id": "01920000-0000-7000-8000-000000000001",
+              "debit_account_name": "Customer Checking",
+              "debit_account_code": "2100",
+              "debit_account_type": "ASSET",
+              "credit_account_id": "01920000-0000-7000-8000-000000000002",
+              "credit_account_name": "Merchant Settlement",
+              "credit_account_code": "2100",
+              "credit_account_type": "ASSET",
+              "amount": 5000,
+              "leg_number": 1,
+              "is_rollup": false
+            },
+            {
+              "debit_account_id": "01920000-0000-7000-8000-000000000001",
+              "debit_account_name": "Customer Checking",
+              "debit_account_code": "2100",
+              "debit_account_type": "ASSET",
+              "credit_account_id": "01920000-0000-7000-8000-00000000000f",
+              "credit_account_name": "Fee Income",
+              "credit_account_code": "4000",
+              "credit_account_type": "REVENUE",
+              "amount": 25,
+              "leg_number": 2,
+              "is_rollup": false
+            }
+          ]
+        }
+      ],
+      "schema": {
+        "name": "templates.core",
+        "version": "1.0.0",
+        "uri": "/schemas/domain/template.schema.json"
+      }
+    }
+  ],
+  "version": "1.0.0"
+}

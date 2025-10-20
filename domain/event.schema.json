@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
+  "title": "Event Request",
+  "description": "Financial event to be processed into ledger transfers",
+  "type": "object",
+  "required": [
+    "event_id",
+    "template_ids",
+    "site_id",
+    "amount",
+    "occurred_at",
+    "accounts",
+    "event_source"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "pattern": "^/schemas/.*",
+      "description": "Canonical path to the JSON schema that describes this event payload",
+      "examples": [
+        "/schemas/domain/event/v0.2.0.schema.json"
+      ]
+    },
+    "event_source": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/eventSource",
+      "description": "System or service that originated the event",
+      "examples": [
+        "payment-gateway",
+        "mobile-app",
+        "backoffice"
+      ]
+    },
+    "event_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuidV7",
+      "description": "UUID v7 for idempotency and natural time ordering",
+      "examples": [
+        "550e8400-e29b-41d4-a716-446655440000"
+      ]
+    },
+    "template_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/templateId"
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
+      "description": "Array of template IDs to process atomically (ALL must succeed or ALL fail)",
+      "examples": [
+        [
+          132
+        ],
+        [
+          132,
+          145
+        ]
+      ]
+    },
+    "site_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/siteId"
+    },
+    "amount": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/positiveAmount",
+      "description": "Transaction amount in minor currency units (cents, pence, satoshis)",
+      "examples": [
+        5000,
+        10000,
+        250000
+      ]
+    },
+    "occurred_at": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/unixTimestamp",
+      "description": "When business event occurred (Unix ms)",
+      "examples": [
+        1700746200000,
+        1735920000000
+      ]
+    },
+    "accounts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "purpose",
+          "account_id"
+        ],
+        "properties": {
+          "purpose": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/purposeName",
+            "description": "Account purpose matching template requirements",
+            "examples": [
+              "from",
+              "to",
+              "fee",
+              "nostro",
+              "vostro"
+            ]
+          },
+          "account_id": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuid",
+            "description": "UUID of the account",
+            "examples": [
+              "0192e4d8-7b23-7f89-a123-456789abcdef",
+              "0192e4d8-7b24-7f89-a123-456789abcde0"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 50,
+      "uniqueItems": true,
+      "description": "Account mappings for the event. Each account must have a unique purpose value.",
+      "$comment": "uniqueItems validates object equality, not individual properties. Runtime validation required: purposes must be unique across array",
+      "examples": [
+        [
+          {
+            "purpose": "from",
+            "account_id": "account-uuid-1"
+          },
+          {
+            "purpose": "to",
+            "account_id": "account-uuid-2"
+          },
+          {
+            "purpose": "fee",
+            "account_id": "fee-account-uuid"
+          }
+        ]
+      ]
+    },
+    "extra_metadata": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+        "maxLength": 100
+      },
+      "maxProperties": 100,
+      "description": "Additional context validated against template's metadata_schema",
+      "$comment": "Fields starting with '__' are reserved for system use. Structure validated against each template's metadata_schema",
+      "examples": [
+        {
+          "customer_name": "John Doe",
+          "reference": "INV-2024-001"
+        },
+        {
+          "customer_name": "Jane Smith",
+          "reference": "PAY-2024-002",
+          "payment_method": "wire_transfer",
+          "notes": "Quarterly payment"
+        }
+      ]
+    },
+    "original_event_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuid",
+      "description": "First event in the series (optional linkage)",
+      "examples": [
+        "0192e4d8-7b23-7f89-a123-456789abcd11"
+      ]
+    },
+    "previous_event_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuidV7",
+      "description": "Immediate predecessor event in the chain (optional)",
+      "examples": [
+        "0192e4d8-7b23-7f89-a123-456789abcd12"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
+      "event_source": "payment-gateway",
+      "event_id": "550e8400-e29b-41d4-a716-446655440000",
+      "template_ids": [
+        132
+      ],
+      "site_id": 1,
+      "amount": 5000,
+      "occurred_at": 1700746200000,
+      "accounts": [
+        {
+          "purpose": "from",
+          "account_id": "account-uuid-1"
+        },
+        {
+          "purpose": "to",
+          "account_id": "account-uuid-2"
+        },
+        {
+          "purpose": "fee",
+          "account_id": "fee-account-uuid"
+        }
+      ],
+      "extra_metadata": {
+        "customer_name": "John Doe",
+        "reference": "INV-2024-001"
+      },
+      "original_event_id": "0192e4d8-7b23-7f89-a123-456789abcd11",
+      "previous_event_id": "0192e4d8-7b23-7f89-a123-456789abcd12"
+    },
+    {
+      "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
+      "event_source": "mobile-app",
+      "event_id": "660e8400-e29b-41d4-a716-446655440001",
+      "template_ids": [
+        132,
+        145
+      ],
+      "site_id": 1,
+      "amount": 10000,
+      "occurred_at": 1700746300000,
+      "accounts": [
+        {
+          "purpose": "from",
+          "account_id": "account-uuid-3"
+        },
+        {
+          "purpose": "to",
+          "account_id": "account-uuid-4"
+        }
+      ],
+      "extra_metadata": {
+        "customer_name": "Jane Smith",
+        "reference": "PAY-2024-002",
+        "payment_method": "wire_transfer"
+      },
+      "original_event_id": "0192e4d8-7b23-7f89-a123-456789abcd11",
+      "previous_event_id": "0192e4d8-7b23-7f89-a123-456789abcd12"
+    }
+  ],
+  "version": "1.0.0"
+}
