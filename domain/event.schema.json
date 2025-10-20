@@ -16,7 +16,7 @@
   "properties": {
     "$schema": {
       "type": "string",
-      "pattern": "^/schemas/.*",
+      "pattern": "^(https://ledger-rocket.github.io/schemas/.*|/schemas/.*)$",
       "description": "Canonical path to the JSON schema that describes this event payload",
       "examples": [
         "/schemas/domain/event/v0.2.0.schema.json"
