@@ -197,3 +197,12 @@ console.log("template is valid");
 2. Bump the `"version"` field when you change the contract.
 3. Commit to `main`; GitHub Pages republishes within ~60 seconds.
 4. Optionally tag releases (`git tag v1.0.0`) for traceability.
+
+## Versioned Copies
+
+- `common/v1.0.0/defs.schema.json`
+- `domain/v1.0.0/event.schema.json`
+- `domain/v1.0.0/template.schema.json`
+- `domain/v1.0.0/expected-transfer.schema.json`
+
+Each mirrors the latest contract for the 1.0.0 release.
