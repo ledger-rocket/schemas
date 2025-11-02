@@ -5,6 +5,7 @@
   "description": "Template defining business logic for transforming events into ledger transfers",
   "type": "object",
   "required": [
+    "$schema",
     "template_id",
     "site_id",
     "name",
@@ -222,7 +223,7 @@
           },
           "ledger_scope": {
             "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/ledgerScope",
-            "description": "Ledger scope this impact applies to: 'primary' or 'secondary'"
+            "description": "Ledger scope identifier this impact applies to. Must match a key in ledger_scope_descriptions."
           },
           "description": {
             "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
@@ -238,14 +239,10 @@
     "ledger_scope_descriptions": {
       "type": "object",
       "description": "Human-readable descriptions for each ledger scope used by this template. Required when capabilities include FX or intercompany transfers.",
-      "properties": {
-        "primary": {
+      "patternProperties": {
+        "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$": {
           "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
-          "description": "Description of how this template uses the primary ledger scope."
-        },
-        "secondary": {
-          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
-          "description": "Description of how this template uses the secondary ledger scope."
+          "description": "Description of how this template uses the referenced ledger scope."
         }
       },
       "additionalProperties": false
@@ -361,12 +358,12 @@
             ]
           },
           "debit_account": {
-            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
-            "description": "Variable name containing the debit account ID",
-            "$comment": "Variable must contain a UUID",
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/legFieldReference",
+            "description": "Reference for the debit account (variable or direct selector)",
+            "$comment": "References an earlier variable or a direct accounts.<purpose> selector",
             "examples": [
               "from_account_id",
-              "fee_payer_account_id"
+              "accounts.payables.account_id"
             ]
           },
           "debit_account_type": {
@@ -375,12 +372,12 @@
             "$comment": "Runtime validation ensures the actual account matches this type. Prevents business logic errors."
           },
           "credit_account": {
-            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
-            "description": "Variable name containing the credit account ID",
-            "$comment": "Variable must contain a UUID",
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/legFieldReference",
+            "description": "Reference for the credit account (variable or direct selector)",
+            "$comment": "References an earlier variable or a direct accounts.<purpose> selector",
             "examples": [
               "to_account_id",
-              "fee_account_id"
+              "accounts.receiver.account_id"
             ]
           },
           "credit_account_type": {
@@ -391,30 +388,22 @@
           "amount": {
             "oneOf": [
               {
-                "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
-                "description": "Variable name containing the transfer amount"
+                "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/legFieldReference",
+                "description": "Reference for the transfer amount (variable or selector)"
               },
               {
                 "type": "integer",
                 "minimum": 1,
                 "description": "Literal integer amount in minor currency units"
-              },
-              {
-                "type": "string",
-                "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)+$",
-                "description": "Dot notation expression for accessing nested properties"
               }
             ],
-            "description": "Transfer amount - variable name, literal integer, or dot notation expression",
-            "$comment": "Can be variable reference, literal positive integer, or dot notation path",
+            "description": "Transfer amount source",
+            "$comment": "Prefer references; literals allowed for fixed adjustments",
             "examples": [
               "transfer_amount",
-              "fee_amount",
-              "1000",
-              "2500",
-              "accounts.from_account.balance",
-              "event.calculated_fee",
-              "metadata.custom_amount"
+              "event.amount",
+              "accounts.fee.amount_minor",
+              "1000"
             ]
           },
           "description": {
@@ -428,8 +417,7 @@
           },
           "ledger_scope": {
             "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/ledgerScope",
-            "description": "Ledger scope: 'primary' or 'secondary' for intercompany templates",
-            "$comment": "Defaults to 'primary' if not specified"
+            "description": "Ledger scope identifier for this leg. Must match a key in ledger_scope_descriptions when provided."
           },
           "treatment_type": {
             "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/treatmentType",
@@ -437,13 +425,13 @@
             "$comment": "Must match one of the types in template's accounting_treatments array"
           },
           "condition": {
-            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
-            "description": "Variable name containing boolean for conditional execution",
-            "$comment": "If variable evaluates to false, leg is skipped",
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/legFieldReference",
+            "description": "Reference to a boolean controlling conditional execution",
+            "$comment": "If the referenced value evaluates to false, the leg is skipped",
             "examples": [
               "should_execute_main",
               "should_charge_fee",
-              "is_taxable"
+              "event.extra_metadata.manual_override"
             ]
           }
         },
@@ -452,12 +440,12 @@
       "minItems": 1,
       "maxItems": 64,
       "description": "Transfer legs that generate the actual ledger transfers",
-      "$comment": "All leg fields reference variable names. This enforces separation of logic (in variables) and data mapping (in legs)."
+      "$comment": "All leg fields reference variables or whitelisted selectors, keeping business logic in variables while allowing direct context access."
     },
     "metadata_schema": {
       "type": "object",
       "description": "JSON Schema for validating event's extra_metadata field",
-      "$comment": "Must be a valid JSON Schema (draft-07 recommended for compatibility)",
+      "$comment": "Must be a valid JSON Schema document (2020-12 or later recommended)",
       "properties": {
         "$schema": {
           "type": "string",
@@ -568,18 +556,38 @@
       "name": "Cross-Border Payment via Nostro/Vostro",
       "description": "Processes cross-border payments using nostro/vostro accounts with automatic fee calculation based on amount tiers",
       "trigger": "Customer requests cross-border payment",
+      "accounting_treatments": [
+        {
+          "type": "TREATMENT_PRINCIPAL",
+          "description": "Reclassify customer cash into the nostro settlement account",
+          "policy_refs": [
+            {
+              "id": "POLICY-CASH-001"
+            }
+          ]
+        },
+        {
+          "type": "TREATMENT_FEE_ON_RECEIPT",
+          "description": "Recognize fee revenue when collected",
+          "policy_refs": [
+            {
+              "id": "POLICY-FEE-002"
+            }
+          ]
+        }
+      ],
       "financial_statements_impact": [
         {
           "account_type": "ASSET",
-          "impact": "decrease_or_no_impact"
-        },
-        {
-          "account_type": "EQUITY",
-          "impact": "increase_or_no_impact"
+          "impact": "no_impact",
+          "ledger_scope": "primary",
+          "description": "Principal leg reclassifies assets within the primary ledger"
         },
         {
           "account_type": "REVENUE",
-          "impact": "increase_or_no_impact"
+          "impact": "increase",
+          "ledger_scope": "primary",
+          "description": "Fee leg increases revenue when fees are collected"
         }
       ],
       "product": "FX_SERVICES",
@@ -587,85 +595,77 @@
       "category": "PAYMENT",
       "variables": [
         {
-          "name": "from_account_id",
-          "value": "accounts.from.account_id",
-          "description": "Source account UUID"
-        },
-        {
-          "name": "to_account_id",
-          "value": "accounts.to.account_id",
-          "description": "Destination account UUID"
-        },
-        {
-          "name": "fee_account_id",
-          "value": "accounts.fee.account_id",
-          "description": "Fee collection account UUID"
-        },
-        {
-          "name": "transfer_amount",
+          "name": "PRINCIPAL_AMOUNT",
           "value": "amount",
           "description": "Main transfer amount"
         },
         {
-          "name": "fee_percentage_basis_points",
-          "value": "50",
-          "description": "Fee percentage in basis points (50 = 0.5%)"
+          "name": "FEE_BASIS_POINTS",
+          "value": "metadata.fee_basis_points",
+          "description": "Fee percentage expressed in basis points"
         },
         {
-          "name": "fee_amount",
-          "value": "max(100, divide_with_bankers_rounding(amount * fee_percentage_basis_points, 10000))",
-          "description": "Calculated fee with minimum of 100 minor units"
+          "name": "RAW_FEE",
+          "value": "divide_with_bankers_rounding(PRINCIPAL_AMOUNT * FEE_BASIS_POINTS, 10000)",
+          "description": "Calculated fee using banker\u2019s rounding"
         },
         {
-          "name": "should_execute_main",
-          "value": "amount > 1000",
-          "description": "Only execute main transfer if amount exceeds threshold"
+          "name": "FEE",
+          "value": "RAW_FEE",
+          "description": "Collected fee amount"
         },
         {
-          "name": "should_charge_fee",
-          "value": "fee_amount > 0 && !has(event.extra_metadata.fee_waived)",
-          "description": "Charge fee unless waived"
+          "name": "SHOULD_EXECUTE_MAIN",
+          "value": "PRINCIPAL_AMOUNT > 0",
+          "description": "Only execute principal leg when amount is positive"
+        },
+        {
+          "name": "SHOULD_CHARGE_FEE",
+          "value": "FEE > 0",
+          "description": "Charge fee when the calculated fee is positive"
         }
       ],
       "validations": [
         {
-          "name": "minimum_amount",
-          "expression": "amount >= 100",
+          "name": "MINIMUM_AMOUNT",
+          "expression": "PRINCIPAL_AMOUNT >= 100",
           "description": "Ensure minimum transaction amount"
         },
         {
-          "name": "same_currency",
+          "name": "SAME_CURRENCY",
           "expression": "accounts.from.ledger.currency.currency_code == accounts.to.ledger.currency.currency_code",
           "description": "Ensure same currency for non-FX transfers"
         },
         {
-          "name": "account_exists",
-          "expression": "accounts.from.account_id != null",
-          "description": "Ensure from account exists"
+          "name": "FEE_BPS_NON_NEGATIVE",
+          "expression": "FEE_BASIS_POINTS >= 0",
+          "description": "Fee basis points must be non-negative"
         }
       ],
       "legs": [
         {
           "leg_number": 1,
-          "debit_account": "from_account_id",
+          "debit_account": "accounts.from.account_id",
           "debit_account_type": "ASSET",
-          "credit_account": "to_account_id",
+          "credit_account": "accounts.to.account_id",
           "credit_account_type": "ASSET",
-          "amount": "transfer_amount",
-          "code": 132,
-          "description": "Main transfer leg",
-          "condition": "should_execute_main"
+          "amount": "PRINCIPAL_AMOUNT",
+          "description": "Principal transfer leg",
+          "ledger_scope": "primary",
+          "treatment_type": "TREATMENT_PRINCIPAL",
+          "condition": "SHOULD_EXECUTE_MAIN"
         },
         {
           "leg_number": 2,
-          "debit_account": "from_account_id",
+          "debit_account": "accounts.from.account_id",
           "debit_account_type": "ASSET",
-          "credit_account": "fee_account_id",
+          "credit_account": "accounts.fee.account_id",
           "credit_account_type": "REVENUE",
-          "amount": "fee_amount",
-          "code": 132,
-          "description": "Fee collection",
-          "condition": "should_charge_fee"
+          "amount": "FEE",
+          "description": "Fee collection leg",
+          "ledger_scope": "primary",
+          "treatment_type": "TREATMENT_FEE_ON_RECEIPT",
+          "condition": "SHOULD_CHARGE_FEE"
         }
       ],
       "account_code_validations": [
@@ -690,7 +690,9 @@
         "type": "object",
         "required": [
           "customer_name",
-          "reference"
+          "reference",
+          "fee_basis_points",
+          "swift_bic"
         ],
         "properties": {
           "customer_name": {
@@ -700,6 +702,23 @@
           "reference": {
             "type": "string",
             "description": "Transaction reference"
+          },
+          "fee_basis_points": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Fee percentage in basis points"
+          },
+          "swift_bic": {
+            "type": "string",
+            "description": "Receiving bank BIC"
+          },
+          "beneficiary_country": {
+            "type": "string",
+            "description": "Beneficiary country ISO code"
+          },
+          "network": {
+            "type": "string",
+            "description": "Payment network identifier"
           },
           "payment_method": {
             "type": "string",
@@ -716,6 +735,7 @@
         {
           "name": "Standard transfer with fee",
           "event_request": {
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
             "event_id": "550e8400-e29b-41d4-a716-446655440000",
             "template_ids": [
               132
@@ -739,7 +759,11 @@
             ],
             "extra_metadata": {
               "customer_name": "John Doe",
-              "reference": "INV-2024-001"
+              "reference": "INV-2024-001",
+              "fee_basis_points": 50,
+              "swift_bic": "AAAABBCCXXX",
+              "beneficiary_country": "GB",
+              "network": "SWIFT"
             }
           },
           "expected_transfers": [
@@ -753,6 +777,7 @@
               "credit_account_code": "2100",
               "credit_account_type": "ASSET",
               "amount": 5000,
+              "ledger_scope": "primary",
               "leg_number": 1,
               "is_rollup": false
             },
@@ -766,6 +791,7 @@
               "credit_account_code": "4000",
               "credit_account_type": "REVENUE",
               "amount": 25,
+              "ledger_scope": "primary",
               "leg_number": 2,
               "is_rollup": false
             }
