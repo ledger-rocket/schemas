@@ -75,19 +75,9 @@
       ]
     },
     "legFieldReference": {
-      "description": "Reference used in template legs (variable or direct selector into the event context)",
-      "oneOf": [
-        {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "description": "Variable name declared elsewhere in the template"
-        },
-        {
-          "type": "string",
-          "pattern": "^(event|accounts\\.[a-z][a-z0-9_]*)(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)+$",
-          "description": "Direct selector into event or enriched accounts context"
-        }
-      ],
+      "type": "string",
+      "pattern": "^[a-z._]+$",
+      "description": "Reference used in template legs (lowercase letters separated by dots)",
       "examples": [
         "transfer_amount",
         "event.amount",
@@ -290,15 +280,14 @@
     },
     "ledgerScope": {
       "type": "string",
-      "enum": [
-        "primary",
-        "secondary"
-      ],
-      "description": "Ledger scope for multi-ledger operations",
-      "$comment": "Primary ledger is typically the funding currency, secondary is typically the crypto or intercompany ledger",
+      "pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$",
+      "description": "Lower snake case ledger scope identifier defined by the template",
+      "$comment": "Scope identifiers are template-defined; 'primary' and 'secondary' remain valid but are no longer the only options.",
       "examples": [
         "primary",
-        "secondary"
+        "secondary",
+        "funding_ledger",
+        "payment_currency_ledger"
       ]
     },
     "treatmentType": {
@@ -306,20 +295,80 @@
       "enum": [
         "cash_movement",
         "settlement_clearing",
+        "refund_reversal",
         "fee_revenue",
         "fee_cost",
+        "fee_accrual",
         "accrual_interest_income",
         "accrual_interest_expense",
         "impairment_provision",
+        "impairment_release",
         "write_off",
-        "refund_reversal"
+        "recovery_post_writeoff",
+        "accrual_non_interest",
+        "amortisation_non_interest",
+        "interest_capitalisation",
+        "loan_principal_disbursement",
+        "loan_principal_repayment",
+        "customer_deposit_receipt",
+        "customer_withdrawal",
+        "internal_transfer",
+        "opening_balance_adjustment",
+        "system_correction",
+        "adjustment_manual",
+        "period_close_allocation",
+        "revaluation_fx",
+        "realized_fx",
+        "revaluation_fair_value",
+        "realized_fair_value",
+        "hedge_cash_flow_reserve",
+        "hedge_fair_value_adjustment",
+        "day_one_pnl",
+        "capital_injection",
+        "capital_redemption",
+        "dividend_distribution",
+        "tax_revenue",
+        "tax_expense",
+        "withholding_tax",
+        "chargeback",
+        "representment",
+        "fee_rebate",
+        "commission_revenue",
+        "commission_cost",
+        "coupon_income",
+        "coupon_expense",
+        "dividend_income",
+        "repo_interest_expense",
+        "reverse_repo_interest_income",
+        "stock_borrow_fee",
+        "stock_lend_rebate",
+        "corporate_action_adjustment",
+        "fail_to_deliver_penalty",
+        "fail_to_receive_penalty",
+        "derivative_initial_margin",
+        "derivative_variation_margin",
+        "collateral_pledge",
+        "collateral_receive",
+        "collateral_interest",
+        "cva_adjustment",
+        "dva_adjustment",
+        "fva_adjustment",
+        "crypto_network_fee",
+        "crypto_staking_reward_income",
+        "crypto_staking_slash_expense",
+        "crypto_custody_fee_cost",
+        "crypto_airdrop_income",
+        "crypto_burn_adjustment",
+        "crypto_chain_reorg_adjustment",
+        "investment_principal_purchase",
+        "investment_principal_sale"
       ],
-      "description": "Accounting treatment classification",
-      "$comment": "Categorizes transfers for regulatory reporting and describes how the leg impacts financial statements",
+      "description": "Accounting treatment classification (see docs/functional-specification.md \u00a75.2 for definitions and data requirements)",
+      "$comment": "Categorizes transfers for regulatory reporting and describes how the leg impacts financial statements; names are immutable once released",
       "examples": [
         "cash_movement",
         "fee_revenue",
-        "settlement_clearing"
+        "revaluation_fx"
       ]
     }
   },

@@ -11,6 +11,8 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 | `domain/expected-transfer.schema.json` | Expected transfer output for template validation/testing | https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json |
 | `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
 
+Recent change: template scopes now accept any lower snake case identifier defined by the template (beyond the legacy `primary` / `secondary` values), and the shared treatment-type enum documents the full adapter-supported set. These tighten validation but remain compatible with existing schema consumers, so the published version stays at **v1.0.0**.
+
 Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current release is **v1.0.0**:
 
 ```
