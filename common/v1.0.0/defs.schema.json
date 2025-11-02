@@ -280,18 +280,63 @@
         "secondary"
       ]
     },
+    
     "treatmentType": {
       "type": "string",
       "enum": [
-        "cash_movement",
-        "settlement_clearing",
-        "fee_revenue",
-        "fee_cost",
-        "accrual_interest_income",
-        "accrual_interest_expense",
-        "impairment_provision",
-        "write_off",
-        "refund_reversal"
+          "cash_movement",
+          "settlement_clearing",
+          "internal_transfer",
+          "opening_balance_adjustment",
+          "system_correction",
+          "adjustment_manual",
+    
+          "loan_principal_disbursement",
+          "loan_principal_repayment",
+    
+          "customer_deposit_receipt",
+          "customer_withdrawal",
+    
+          "fee_revenue",
+          "fee_cost",
+          "fee_rebate",
+    
+          "accrual_interest_income",
+          "accrual_interest_expense",
+    
+          "commission_revenue",
+          "commission_cost",
+    
+          "impairment_provision",
+          "write_off",
+          "refund_reversal",
+    
+          "revaluation_fx",
+          "realized_fair_value",
+          "day_one_pnl",
+    
+          "capital_injection",
+          "dividend_distribution",
+    
+          "tax_expense",
+          "withholding_tax",
+    
+          "chargeback",
+          "representment",
+    
+          "derivative_initial_margin",
+          "collateral_pledge",
+          "cva_adjustment",
+    
+          "investment_principal_purchase",
+          "investment_principal_sale",
+    
+          "crypto_network_fee",
+          "crypto_staking_reward_income",
+          "crypto_chain_reorg_adjustment",
+    
+          "period_close_allocation"
+
       ],
       "description": "Accounting treatment classification",
       "$comment": "Categorizes transfers for regulatory reporting and describes how the leg impacts financial statements",
