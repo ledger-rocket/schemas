@@ -76,7 +76,7 @@
     },
     "legFieldReference": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9_]*$",
+      "pattern": "^[a-z][a-z0-9_.]*$",
       "description": "Reference used in template legs (lowercase letters separated by dots)",
       "examples": [
         "transfer_amount",
