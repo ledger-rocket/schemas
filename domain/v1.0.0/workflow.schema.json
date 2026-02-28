@@ -50,7 +50,7 @@
       ]
     },
     "description": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/longString",
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/extraLongString",
       "minLength": 1,
       "description": "Detailed description of the workflow purpose"
     },
@@ -104,7 +104,7 @@
           "description": "Zero-based indices into the referenced template's Examples slice, used by GUI diagram rendering"
         },
         "description": {
-          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/longString",
           "description": "Optional human-readable description of this step's purpose"
         },
         "trigger": {

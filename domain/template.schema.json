@@ -76,7 +76,7 @@
       ]
     },
     "description": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/longString",
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/extraLongString",
       "minLength": 1,
       "description": "Detailed description of template purpose and behavior",
       "examples": [
@@ -607,7 +607,7 @@
         {
           "name": "RAW_FEE",
           "value": "divide_with_bankers_rounding(PRINCIPAL_AMOUNT * FEE_BASIS_POINTS, 10000)",
-          "description": "Calculated fee using banker\u2019s rounding"
+          "description": "Calculated fee using banker’s rounding"
         },
         {
           "name": "FEE",

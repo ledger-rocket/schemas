@@ -76,7 +76,7 @@
       ]
     },
     "description": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/longString",
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/extraLongString",
       "minLength": 1,
       "description": "Detailed description of template purpose and behavior",
       "examples": [

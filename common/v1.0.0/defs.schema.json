@@ -190,6 +190,11 @@
       "maxLength": 2000,
       "description": "Long text field"
     },
+    "extraLongString": {
+      "type": "string",
+      "maxLength": 10000,
+      "description": "Extra-long text field (e.g. workflow/template descriptions)"
+    },
     "celExpression": {
       "type": "string",
       "minLength": 1,
@@ -363,7 +368,7 @@
         "investment_principal_purchase",
         "investment_principal_sale"
       ],
-      "description": "Accounting treatment classification (see docs/functional-specification.md \u00a75.2 for definitions and data requirements)",
+      "description": "Accounting treatment classification (see docs/functional-specification.md §5.2 for definitions and data requirements)",
       "$comment": "Categorizes transfers for regulatory reporting and describes how the leg impacts financial statements; names are immutable once released",
       "examples": [
         "cash_movement",
