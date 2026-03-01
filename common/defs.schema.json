@@ -118,7 +118,8 @@
         "LIABILITY",
         "EQUITY",
         "REVENUE",
-        "EXPENSE"
+        "EXPENSE",
+        "SUPPLEMENTAL"
       ],
       "description": "Financial statement account type",
       "examples": [
