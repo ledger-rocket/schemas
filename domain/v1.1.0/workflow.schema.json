@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/v1.1.0/workflow.schema.json",
+  "title": "Workflow Definition",
+  "description": "Multi-step business process defined as a chain of template executions with data flowing between steps via expressions",
+  "type": "object",
+  "required": [
+    "$schema",
+    "workflow_id",
+    "code",
+    "site_id",
+    "name",
+    "description",
+    "event_sources",
+    "steps"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "pattern": "^https://ledger-rocket\\.github\\.io/schemas/.*$",
+      "description": "Canonical path to the JSON schema that defines this workflow payload",
+      "examples": [
+        "https://ledger-rocket.github.io/schemas/domain/v1.1.0/workflow.schema.json"
+      ]
+    },
+    "workflow_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuidV7",
+      "description": "Server-generated UUIDv7 identifier"
+    },
+    "code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "User-specified kebab-case slug, unique per site",
+      "examples": [
+        "cross-border-payment",
+        "loan-disbursement",
+        "monthly-fee-sweep"
+      ]
+    },
+    "site_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/siteId"
+    },
+    "name": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/shortString",
+      "description": "Human-readable name",
+      "examples": [
+        "Cross-Border Payment Flow",
+        "Loan Disbursement Workflow"
+      ]
+    },
+    "description": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/extraLongString",
+      "minLength": 1,
+      "description": "Detailed description of the workflow purpose"
+    },
+    "event_sources": {
+      "type": "array",
+      "items": {
+        "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/eventSource"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Systems or services whose events this workflow processes",
+      "examples": [
+        [
+          "payment-gateway"
+        ],
+        [
+          "stripe",
+          "manual-entry"
+        ]
+      ]
+    },
+    "require_shared_ledgers": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, all steps in the workflow share a common set of ledgers"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/workflowStep"
+      },
+      "minItems": 1,
+      "description": "Ordered list of template execution steps"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "workflowStep": {
+      "type": "object",
+      "required": [
+        "id",
+        "template_id",
+        "examples"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Snake_case identifier for this step, referenced by expressions in later steps",
+          "examples": [
+            "initiate_payment",
+            "collect_fee",
+            "settle_nostro"
+          ]
+        },
+        "template_id": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/templateId",
+          "description": "Template to execute for this step"
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 1,
+          "description": "Zero-based indices into the referenced template's Examples slice, used by GUI diagram rendering"
+        },
+        "description": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/longString",
+          "description": "Optional human-readable description of this step's purpose"
+        },
+        "trigger": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "description": "Optional trigger override hint for the orchestrator"
+        },
+        "condition": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Optional condition expression evaluated by the orchestrator to decide whether this step fires"
+        },
+        "condition_description": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "description": "Prose description of what condition means. Required when condition is set."
+        },
+        "repeat_while": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Optional expression evaluated by the orchestrator to repeat this step"
+        },
+        "repeat_while_description": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "description": "Prose description of what repeat_while means. Required when repeat_while is set."
+        },
+        "inputs": {
+          "type": "object",
+          "description": "Input bindings: map of input field name to literal value or ${{ steps.<step_id>.outputs.<key> }} expression",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "version": "1.1.0"
+}
