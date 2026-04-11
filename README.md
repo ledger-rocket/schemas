@@ -8,17 +8,26 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 | --- | --- | --- |
 | `domain/event.schema.json` | Financial event requests submitted to the Event Service | https://ledger-rocket.github.io/schemas/domain/event.schema.json |
 | `domain/template.schema.json` | Ledger templates that transform events into transfers | https://ledger-rocket.github.io/schemas/domain/template.schema.json |
+| `domain/workflow.schema.json` | Workflow definitions that coordinate template execution | https://ledger-rocket.github.io/schemas/domain/workflow.schema.json |
+| `domain/audit-slug.schema.json` | Maker-checker audit lifecycle records for ARE-managed models | https://ledger-rocket.github.io/schemas/domain/audit-slug.schema.json |
 | `domain/expected-transfer.schema.json` | Expected transfer output for template validation/testing | https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json |
 | `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
 
+## Schema Ownership
+
+The Accounting Rule Engine is the source of truth for template, workflow, audit-slug, and common definition schemas. Those files are copied here by the ARE release pipeline after a release is published.
+
+Event and expected-transfer schemas are owned by the Event Service and are still maintained in this repository.
+
 Recent change: template scopes now accept any lower snake case identifier defined by the template (beyond the legacy `primary` / `secondary` values), and the shared treatment-type enum documents the full adapter-supported set. These tighten validation but remain compatible with existing schema consumers, so the published version stays at **v1.0.0**.
 
-Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current release is **v1.0.0**:
+Each schema exposes a top-level `"version"` field. The project is pre-live, so ARE-owned schemas stay on **v1.0.0** until launch. The current release is **v1.0.0**:
 
 ```
 common/v1.0.0/defs.schema.json
 domain/v1.0.0/event.schema.json
 domain/v1.0.0/template.schema.json
+domain/v1.0.0/workflow.schema.json
 domain/v1.0.0/expected-transfer.schema.json
 ```
 
@@ -151,7 +160,7 @@ console.log("template is valid");
 
 ## Contributing
 
-1. Update the relevant schema under `common/` or `domain/`.
-2. Bump the `"version"` field when the contract changes.
-3. Commit to `main`; GitHub Pages republishes within ~60 seconds.
-4. Copy the updated schema into the `vX.Y.Z/` directory when cutting a release tag.
+1. Update ARE-owned schemas in `ledger-rocket/accounting-rule-engine`.
+2. Update Event Service-owned schemas in this repository.
+3. Keep ARE-owned schemas on version `1.0.0` until launch.
+4. Commit to `main`; GitHub Pages republishes within ~60 seconds.
