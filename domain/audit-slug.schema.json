@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/audit-slug.schema.json",
+  "title": "AuditSlug",
+  "description": "Audit trail record tracking state transitions for templates and rules in the maker-checker workflow",
+  "type": "object",
+  "required": [
+    "$schema",
+    "action",
+    "content_hash",
+    "description",
+    "id",
+    "maker",
+    "model_id",
+    "model_name",
+    "revision",
+    "site_id",
+    "state",
+    "transition_date"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://ledger-rocket.github.io/schemas/domain/audit-slug.schema.json",
+      "description": "JSON Schema URL for this audit slug"
+    },
+    "action": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/auditAction"
+    },
+    "checker": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/emailAddress",
+      "description": "User who approved/rejected (null if not applicable)"
+    },
+    "content_hash": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/contentHash"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "Human-readable description of the change"
+    },
+    "effective_date": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/unixTimestamp",
+      "description": "When change becomes active"
+    },
+    "extra_metadata": {
+      "$ref": "#/$defs/auditSlugExtraMetadata"
+    },
+    "id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuidV7",
+      "description": "Unique identifier for this audit slug record"
+    },
+    "maker": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/emailAddress",
+      "description": "User who initiated this action"
+    },
+    "model_id": {
+      "type": "string",
+      "pattern": "^([0-9]+|[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$",
+      "minLength": 1,
+      "maxLength": 36,
+      "description": "String representation of the model's ID (numeric for templates/rules, UUIDv7 for workflows)"
+    },
+    "model_name": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/modelName"
+    },
+    "previous_slug_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuidV7",
+      "description": "ID of the previous audit slug in the chain"
+    },
+    "previous_state": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/auditState",
+      "description": "State before this transition"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000,
+      "description": "Increments with each approval cycle attempt"
+    },
+    "site_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/siteId"
+    },
+    "state": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/auditState",
+      "description": "Current state after this transition"
+    },
+    "ticket_url": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Link to tracking ticket or issue"
+    },
+    "transition_date": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/unixTimestamp",
+      "description": "When state changed"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "auditSlugExtraMetadata": {
+      "type": "object",
+      "description": "Additional context and metadata for the audit record",
+      "properties": {
+        "approved_by_committee": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of committee members who approved (for multi-approver scenarios)"
+        },
+        "change_summary": {
+          "$ref": "#/$defs/auditSlugExtraMetadataChangeSummary"
+        },
+        "comments": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Additional comments about the change"
+        },
+        "rejection_reason": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Reason for rejection (populated when action is REJECT)"
+        },
+        "risk_assessment": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ],
+          "description": "Risk level assessment for this change"
+        },
+        "rollback_reason": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Reason for rollback (populated when rolling back)"
+        },
+        "test_results": {
+          "type": "object",
+          "description": "Results from validation or testing"
+        }
+      },
+      "additionalProperties": true
+    },
+    "auditSlugExtraMetadataChangeSummary": {
+      "type": "object",
+      "description": "Summary of what changed in this revision",
+      "properties": {
+        "diff": {
+          "type": "string",
+          "description": "Unified diff of the content change"
+        },
+        "fields_modified": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of fields that were modified"
+        },
+        "impact_analysis": {
+          "type": "string",
+          "description": "Analysis of the impact of this change"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ledger-rocket.github.io/schemas/domain/template.schema.json",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.schema.json",
   "title": "Template",
   "description": "Template defining business logic for transforming events into ledger transfers",
   "type": "object",
@@ -26,7 +26,7 @@
       "pattern": "^https://ledger-rocket\\.github\\.io/schemas/.*$",
       "description": "Canonical path to the JSON schema that describes this template",
       "examples": [
-        "https://ledger-rocket.github.io/schemas/domain/template.schema.json"
+        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.schema.json"
       ]
     },
     "template_id": {
@@ -530,13 +530,13 @@
             "description": "Human-readable description of the example scenario"
           },
           "event_request": {
-            "$ref": "event.schema.json",
+            "$ref": "../event.schema.json",
             "description": "Sample event request for testing"
           },
           "expected_transfers": {
             "type": "array",
             "items": {
-              "$ref": "https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json"
+              "$ref": "../expected-transfer.schema.json"
             },
             "description": "Expected transfers that should be generated for validation"
           }

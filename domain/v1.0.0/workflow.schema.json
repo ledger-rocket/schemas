@@ -75,14 +75,18 @@
       "required": [
         "id",
         "template_id",
-        "examples"
+        "event_sources",
+        "examples",
+        "group",
+        "depends_on_step_ids",
+        "diagram_label"
       ],
       "properties": {
         "id": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]*$",
           "minLength": 1,
-          "maxLength": 50,
+          "maxLength": 100,
           "description": "Snake_case identifier for this step, referenced by expressions in later steps",
           "examples": [
             "initiate_payment",
@@ -94,6 +98,15 @@
           "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/templateId",
           "description": "Template to execute for this step"
         },
+        "event_sources": {
+          "type": "array",
+          "items": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/eventSource"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Systems or services whose events trigger this step"
+        },
         "examples": {
           "type": "array",
           "items": {
@@ -102,6 +115,23 @@
           },
           "minItems": 1,
           "description": "Zero-based indices into the referenced template's Examples slice, used by GUI diagram rendering"
+        },
+        "group": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/shortString",
+          "description": "Visual stage/group this step belongs to for diagram rendering"
+        },
+        "depends_on_step_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "maxLength": 100
+          },
+          "description": "Explicit DAG dependencies for this step. Must always be present, even if empty."
+        },
+        "diagram_label": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/shortString",
+          "description": "Exact human-readable label to use for Mermaid/UI rendering"
         },
         "description": {
           "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/longString",
