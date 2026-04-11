@@ -5,12 +5,12 @@
   "description": "Financial event to be processed into ledger transfers",
   "type": "object",
   "required": [
+    "$schema",
     "event_id",
     "template_ids",
     "site_id",
     "amount",
     "occurred_at",
-    "accounts",
     "event_source"
   ],
   "properties": {
