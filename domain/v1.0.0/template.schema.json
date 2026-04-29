@@ -236,9 +236,8 @@
         "additionalProperties": false
       },
       "minItems": 0,
-      "maxItems": 6,
       "description": "Net accounting impact on financial statements by account type per ledger scope. For templates with capabilities allowing FX or intercompany transfers, each ledger scope must declare impacts for all account types touched by its legs.",
-      "$comment": "Templates with cross-ledger operations must explicitly declare impacts per scope, including no_impact when debits and credits cancel."
+      "$comment": "Templates with cross-ledger operations must explicitly declare impacts per scope, including no_impact when debits and credits cancel. Business validation allows at most one declaration for each account type per ledger_scope, so each ledger_scope can have at most six entries."
     },
     "ledger_scope_descriptions": {
       "type": "object",
