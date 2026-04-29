@@ -10,8 +10,10 @@
     "site_id",
     "name",
     "description",
+    "trigger",
     "accounting_treatments",
     "account_code_validations",
+    "financial_statements_impact",
     "product",
     "event_type",
     "category",
@@ -85,6 +87,7 @@
     },
     "trigger": {
       "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+      "minLength": 1,
       "description": "Business event that triggers this template",
       "examples": [
         "Customer requests cross-border payment",
@@ -234,7 +237,7 @@
       },
       "minItems": 0,
       "description": "Net accounting impact on financial statements by account type per ledger scope. For templates with capabilities allowing FX or intercompany transfers, each ledger scope must declare impacts for all account types touched by its legs.",
-      "$comment": "Templates with cross-ledger operations must explicitly declare impacts per scope, including no_impact when debits and credits cancel."
+      "$comment": "Templates with cross-ledger operations must explicitly declare impacts per scope, including no_impact when debits and credits cancel. Business validation allows at most one declaration for each account type per ledger_scope, so each ledger_scope can have at most six entries."
     },
     "ledger_scope_descriptions": {
       "type": "object",
@@ -349,7 +352,7 @@
           "leg_number": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 1000,
+            "maximum": 64,
             "description": "Sequential identifier for the leg",
             "examples": [
               1,
@@ -517,6 +520,7 @@
         "properties": {
           "name": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 200,
             "description": "Name of the example scenario",
             "examples": [
