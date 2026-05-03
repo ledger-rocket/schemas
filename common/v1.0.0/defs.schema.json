@@ -148,6 +148,7 @@
         "PENDING_APPROVAL",
         "LIVE",
         "DEPRECATED",
+        "DELETED",
         "REJECTED"
       ],
       "description": "Audit workflow state",
@@ -159,9 +160,13 @@
         "CREATE",
         "SUBMIT_FOR_APPROVAL",
         "APPROVE",
+        "DELETE",
         "REJECT",
         "DEPRECATE",
+        "RESTORE_DEPRECATED",
         "ROLLBACK",
+        "UNDELETE",
+        "WITHDRAW",
         "UPDATE"
       ],
       "description": "Action that causes state transition"
