@@ -165,6 +165,59 @@
       "examples": [
         "0192e4d8-7b23-7f89-a123-456789abcd12"
       ]
+    },
+    "directives": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "manual_rollup_override",
+          "skip_rollup_processing",
+          "seed_mode"
+        ]
+      },
+      "uniqueItems": true,
+      "description": "Processing directives. Canonical snake_case values only, no duplicates. 'seed_mode' requires 'ledger_timestamp' to be present and positive.",
+      "examples": [
+        [
+          "seed_mode"
+        ],
+        [
+          "manual_rollup_override",
+          "skip_rollup_processing"
+        ]
+      ]
+    },
+    "workflow_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuid",
+      "description": "Workflow execution identifier. Required when 'step_code' is present.",
+      "examples": [
+        "0192e4d8-7b23-7f89-a123-456789abcd13"
+      ]
+    },
+    "step_code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Workflow step code in lowercase snake_case. Requires 'workflow_id' to be present.",
+      "examples": [
+        "capture",
+        "settle_funds"
+      ]
+    },
+    "ledger_timestamp": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Imported ledger timestamp in Unix milliseconds (UTC). Required and positive when the 'seed_mode' directive is present; applied as the TigerBeetle imported transfer timestamp.",
+      "examples": [
+        1700746200000
+      ]
+    },
+    "is_reversal": {
+      "type": "boolean",
+      "description": "Reversal marker. Rejected on the regular ingestion and validation endpoints; reversal transfers are generated internally.",
+      "examples": [
+        false
+      ]
     }
   },
   "additionalProperties": false,
