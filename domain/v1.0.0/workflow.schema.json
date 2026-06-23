@@ -11,6 +11,8 @@
     "site_id",
     "name",
     "description",
+    "accounting_treatment",
+    "category",
     "steps"
   ],
   "properties": {
@@ -53,6 +55,23 @@
       "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/extraLongString",
       "minLength": 1,
       "description": "Detailed description of the workflow purpose"
+    },
+    "accounting_treatment": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/extraLongString",
+      "minLength": 1,
+      "description": "Workflow-level accounting treatment summary. Detailed accounting policies remain on the referenced templates.",
+      "examples": [
+        "See templates."
+      ]
+    },
+    "category": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
+      "description": "Business category for this workflow",
+      "examples": [
+        "CASH_MOVEMENT",
+        "TREASURY_FX",
+        "LENDING"
+      ]
     },
     "require_shared_ledgers": {
       "type": "boolean",
