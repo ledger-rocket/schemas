@@ -152,6 +152,10 @@
               "Fee income accounts",
               "Asset accounts"
             ]
+          },
+          "from_matched_event": {
+            "type": "boolean",
+            "description": "Opts this purpose into matched-event account derivation: when the producer does not supply the purpose, event-service resolves it to the unique account of the event named by extra_metadata.matched_event_id whose code matches mask, and rejects the event otherwise. Templates using this flag must declare matched_event_id in metadata_schema and list it in required. Defaults to false."
           }
         },
         "additionalProperties": false
@@ -282,6 +286,19 @@
               "Calculated fee with minimum of 100 minor units",
               "Whether to charge fee"
             ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "string",
+              "integer",
+              "boolean"
+            ],
+            "description": "JSON primitive type of the evaluated variable. Required when export is true: event-service type-checks the evaluated value against it before stamping the exported variable onto the event."
+          },
+          "export": {
+            "type": "boolean",
+            "description": "Exports the evaluated variable onto the accepted event as a platform-derived {name, type, value} entry in exported_variables. Evaluation or type failure rejects the event. Defaults to false."
           }
         },
         "additionalProperties": false
