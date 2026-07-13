@@ -269,6 +269,18 @@
         250000
       ]
     },
+    "nonNegativeAmount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9223372036854775807,
+      "description": "Non-negative amount in minor currency units; zero is only meaningful where an explicit contract (e.g. the event 'zero_amount' directive) permits it",
+      "$comment": "Zero allowed; pair with a conditional rule so zero is never accepted silently",
+      "examples": [
+        0,
+        5000,
+        250000
+      ]
+    },
     "eventSource": {
       "type": "string",
       "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$",
@@ -380,7 +392,7 @@
         "investment_principal_purchase",
         "investment_principal_sale"
       ],
-      "description": "Accounting treatment classification (see docs/functional-specification.md §5.2 for definitions and data requirements)",
+      "description": "Accounting treatment classification (see docs/functional-specification.md \u00a75.2 for definitions and data requirements)",
       "$comment": "Categorizes transfers for regulatory reporting and describes how the leg impacts financial statements; names are immutable once released",
       "examples": [
         "cash_movement",

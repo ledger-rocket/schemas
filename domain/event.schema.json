@@ -61,8 +61,8 @@
       "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/siteId"
     },
     "amount": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/positiveAmount",
-      "description": "Transaction amount in minor currency units (cents, pence, satoshis)",
+      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/nonNegativeAmount",
+      "description": "Transaction amount in minor currency units (cents, pence, satoshis). Zero if and only if the 'zero_amount' directive is present (see allOf rule): templates then derive leg amounts from event metadata.",
       "examples": [
         5000,
         10000,
@@ -173,11 +173,13 @@
         "enum": [
           "manual_rollup_override",
           "skip_rollup_processing",
-          "seed_mode"
+          "seed_mode",
+          "backfill",
+          "zero_amount"
         ]
       },
       "uniqueItems": true,
-      "description": "Processing directives. Canonical snake_case values only, no duplicates. 'seed_mode' requires 'ledger_timestamp' to be present and positive.",
+      "description": "Processing directives. Canonical snake_case values only, no duplicates. 'seed_mode' requires 'ledger_timestamp' to be present and positive. 'backfill' marks a historical backfill, relaxing the occurred_at staleness ceiling. 'zero_amount' declares the event-level amount as not meaningful and requires amount == 0 (and amount == 0 requires this directive); template legs derive amounts from event metadata.",
       "examples": [
         [
           "seed_mode"
@@ -185,6 +187,9 @@
         [
           "manual_rollup_override",
           "skip_rollup_processing"
+        ],
+        [
+          "zero_amount"
         ]
       ]
     },
@@ -283,5 +288,36 @@
       "previous_event_id": "0192e4d8-7b23-7f89-a123-456789abcd12"
     }
   ],
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "allOf": [
+    {
+      "$comment": "zero_amount iff rule: the directive is present if and only if amount == 0",
+      "if": {
+        "required": [
+          "directives"
+        ],
+        "properties": {
+          "directives": {
+            "contains": {
+              "const": "zero_amount"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "amount": {
+            "const": 0
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "amount": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/positiveAmount"
+          }
+        }
+      }
+    }
+  ]
 }
