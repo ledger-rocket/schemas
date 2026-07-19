@@ -1,0 +1,65 @@
+name: CI
+
+# Self-contained gate for this PUBLIC repo. It must never reference the
+# org's internal reusable workflows (that would leak internal paths and
+# cannot be called across the public/internal boundary) and must carry no
+# secrets, so it runs safely on fork pull requests.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-schemas:
+    name: Validate JSON schemas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned validators
+        run: pip install "check-jsonschema==0.35.0" "jsonschema==4.25.1" "referencing==0.36.2"
+      - name: Validate every schema against its declared meta-schema
+        run: |
+          mapfile -t files < <(find . -path ./.git -prune -o -name '*.schema.json' -print | sort)
+          printf '%s\n' "${files[@]}"
+          check-jsonschema --check-metaschema "${files[@]}"
+      - name: Resolve cross-file $refs against working-tree copies
+        run: python .github/scripts/check_refs.py
+
+  lint-yaml:
+    name: Lint workflow YAML
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Lint YAML
+        run: |
+          pip install "yamllint==1.38.0"
+          yamllint -d "{extends: relaxed, rules: {line-length: disable}}" .github/workflows/
+
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [validate-schemas, lint-yaml]
+    if: always()
+    steps:
+      - name: Require every check job to have succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "needed job results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error::a required job did not succeed (result: $result)"
+              exit 1
+            fi
+          done
+          echo "all required jobs succeeded"
