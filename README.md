@@ -12,11 +12,13 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 | `domain/expected-transfer.schema.json` | Expected transfer output for template validation/testing | https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json |
 | `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
 
-Recent workflow change: workflow schema **v1.0.0** requires top-level `accounting_treatment` and `category` fields. `accounting_treatment` is workflow-level prose; detailed accounting policies remain on referenced templates. `category` is an open-vocabulary `UPPER_SNAKE_CASE` business category.
+Recent workflow change: workflow schema **v1.1.0** adds an optional step-level `run_lifecycle_of` field: a snake_case sibling step id whose programme run lifecycle emits the step's events. v1.0.0 documents remain valid v1.1.0 documents; both frozen versions stay published.
+
+Earlier workflow change: workflow schema **v1.0.0** requires top-level `accounting_treatment` and `category` fields. `accounting_treatment` is workflow-level prose; detailed accounting policies remain on referenced templates. `category` is an open-vocabulary `UPPER_SNAKE_CASE` business category.
 
 Recent change: template scopes now accept any lower snake case identifier defined by the template (beyond the legacy `primary` / `secondary` values), and the shared treatment-type enum documents the full adapter-supported set. These tighten validation but remain compatible with existing schema consumers, so the published version stays at **v1.0.0**.
 
-Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current published version is **v1.0.0**:
+Each schema exposes a top-level `"version"` field. When the contract changes, the version increments (major for breaking changes, minor for compatible additions) and a frozen copy is published under `vX.Y.Z/`. The workflow schema is at **v1.1.0**; all other schemas remain at **v1.0.0**:
 
 ```
 common/v1.0.0/defs.schema.json
@@ -24,6 +26,7 @@ domain/v1.0.0/event.schema.json
 domain/v1.0.0/template.schema.json
 domain/v1.0.0/workflow.schema.json
 domain/v1.0.0/expected-transfer.schema.json
+domain/v1.1.0/workflow.schema.json
 ```
 
 ## Editor Integration
