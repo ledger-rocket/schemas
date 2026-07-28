@@ -82,8 +82,19 @@
       "items": {
         "type": "object",
         "required": [
-          "purpose",
-          "account_id"
+          "purpose"
+        ],
+        "oneOf": [
+          {
+            "required": [
+              "account_id"
+            ]
+          },
+          {
+            "required": [
+              "external_account_id"
+            ]
+          }
         ],
         "properties": {
           "purpose": {
@@ -99,14 +110,25 @@
           },
           "account_id": {
             "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuid",
-            "description": "UUID of the account",
+            "description": "Internal Ledger Service account UUID. Exactly one of account_id and external_account_id must be present.",
             "examples": [
               "0192e4d8-7b23-7f89-a123-456789abcdef",
               "0192e4d8-7b24-7f89-a123-456789abcde0"
             ]
+          },
+          "external_account_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Customer-supplied external account id, resolved to a Ledger Service account for the site. Exactly one of account_id and external_account_id must be present.",
+            "examples": [
+              "ACC-100234",
+              "customer-wallet-42"
+            ]
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "$comment": "The oneOf enforces account_id XOR external_account_id: an item carrying both ids matches both branches and an item carrying neither matches none, so both cases fail. The Event Service rejects those cases with a 422."
       },
       "minItems": 1,
       "maxItems": 50,
@@ -126,6 +148,16 @@
           {
             "purpose": "fee",
             "account_id": "fee-account-uuid"
+          }
+        ],
+        [
+          {
+            "purpose": "from",
+            "external_account_id": "ACC-100234"
+          },
+          {
+            "purpose": "to",
+            "account_id": "0192e4d8-7b24-7f89-a123-456789abcde0"
           }
         ]
       ]
