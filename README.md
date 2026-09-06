@@ -14,6 +14,8 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 
 Recent event change: each `accounts` entry now carries `account_id` XOR `external_account_id` (exactly one; `purpose` stays required). `external_account_id` is the customer-supplied external account id, resolved to a Ledger Service account for the site. This matches the contract both Event Service engines already enforce (supplying both or neither is a 422) and relaxes the schema, so existing instances stay valid and the published version stays at **v1.0.0**.
 
+Recent template change: `accounting_treatments[].policy_refs[].version` now carries `maximum: 9999` alongside its existing `minimum: 1`. Policy versions are edition years (IAS 1 2023, CONCEPTUAL_FRAMEWORK 2018) or small revision numbers, so four digits admit every real version, and accounting-rule-engine already enforces the same `1..9999` bound in code and in its OpenAPI document. This tightens validation only for versions of five or more digits, which no real policy carries, so the published version stays at **v1.0.0**.
+
 Recent workflow change: workflow schema **v1.0.0** requires top-level `accounting_treatment` and `category` fields. `accounting_treatment` is workflow-level prose; detailed accounting policies remain on referenced templates. `category` is an open-vocabulary `UPPER_SNAKE_CASE` business category.
 
 Recent change: template scopes now accept any lower snake case identifier defined by the template (beyond the legacy `primary` / `secondary` values), and the shared treatment-type enum documents the full adapter-supported set. These tighten validation but remain compatible with existing schema consumers, so the published version stays at **v1.0.0**.
