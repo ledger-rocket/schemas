@@ -192,7 +192,8 @@
                 "version": {
                   "type": "integer",
                   "minimum": 1,
-                  "description": "Optional explicit version (if omitted, resolve active version)"
+                  "maximum": 9999,
+                  "description": "Optional explicit version (if omitted, resolve active version). Policy versions are edition years (e.g. 2023) or small revision numbers, so four digits admit every real version; accounting-rule-engine enforces the same 1..9999 bound."
                 }
               },
               "additionalProperties": false
