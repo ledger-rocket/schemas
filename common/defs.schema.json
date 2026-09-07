@@ -232,10 +232,10 @@
     },
     "policyId": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9./_-]*[A-Za-z0-9]$",
+      "pattern": "^[A-Z0-9][A-Z0-9./_-]*[A-Z0-9]$",
       "minLength": 1,
       "maxLength": 100,
-      "description": "Accounting policy reference ID (no URI scheme)",
+      "description": "Accounting policy reference ID (no URI scheme): uppercase letters and digits joined by . / _ -, starting and ending with a letter or digit, at most 100 characters. accounting-rule-engine enforces this exact pattern and this exact length on every template it accepts and every template it serves, and publishes both on PolicyRef.id.",
       "examples": [
         "IFRS9.B5.4.1",
         "IAS32.DEPOSITS",
