@@ -52,6 +52,10 @@ Add a `$schema` declaration that points at the hosted URL—relative paths are i
 
 ## Programmatic Validation Examples
 
+These examples demonstrate JSON Schema structure checking only. The Python candidate deliberately has an empty `examples` array, and the Node.js snippet reuses that structure. Neither is an ARE-ready authored template. Schema validation does not execute expressions, resolve accounts, or compare generated transfers with expected transfers.
+
+For template authoring, follow the [executable-example requirements](https://github.com/ledger-rocket/claude-plugins/blob/main/ledgerrocket-workflows/skills/template-update/SKILL.md#never-delete-examples) and the [authoring validation procedure](https://github.com/ledger-rocket/claude-plugins/blob/main/ledgerrocket-workflows/skills/template-update/SKILL.md#step-5-validate-changes). Supply at least one executable example and validate every example before submitting the template to ARE. Fix failing logic or examples rather than deleting examples to obtain a pass.
+
 ### Python (`jsonschema` ≥ 4.18)
 
 ```python
@@ -124,7 +128,7 @@ candidate = {
 }
 
 Draft202012Validator(SCHEMAS["template"], resolver=resolver).validate(candidate)
-print("template is valid")
+print("template structure passes JSON Schema validation; ARE execution is not validated")
 ```
 
 ### Node.js (`ajv` ≥ 8)
@@ -160,12 +164,15 @@ if (!validate(candidate)) {
   process.exit(1);
 }
 
-console.log("template is valid");
+console.log("template structure passes JSON Schema validation; ARE execution is not validated");
 ```
 
 ## Contributing
 
-1. Update the relevant schema under `common/` or `domain/`.
-2. Bump the `"version"` field when the contract changes.
-3. Commit to `main`; GitHub Pages republishes within ~60 seconds.
-4. Copy the updated schema into the `vX.Y.Z/` directory when cutting a release tag.
+1. Create a working branch from the latest `main`.
+2. Update the relevant schema under `common/` or `domain/` on that branch.
+3. Bump the `"version"` field when the contract changes. Increment the major version for a breaking change.
+4. Include the frozen schema copy under `vX.Y.Z/` in the release PR when preparing a release tag.
+5. Commit and push the working branch, then open a PR. Obtain the required review approval and passing checks.
+6. Merge the reviewed PR into `main` only with explicit merge authorization. Never push directly to `main`.
+7. GitHub Pages publication follows the merge to `main`. Verify publication before using the updated hosted schemas.
