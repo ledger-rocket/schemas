@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ledger-rocket.github.io/schemas/domain/audit-slug.schema.json",
   "title": "AuditSlug",
-  "description": "Audit trail record tracking state transitions for templates and rules in the maker-checker workflow",
+  "description": "Audit trail record tracking state transitions for templates, rules and workflows in the maker-checker workflow",
   "type": "object",
   "required": [
     "$schema",

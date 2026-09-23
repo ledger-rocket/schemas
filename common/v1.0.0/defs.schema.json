@@ -226,7 +226,8 @@
       "type": "string",
       "enum": [
         "template",
-        "rule"
+        "rule",
+        "workflow"
       ],
       "description": "Type of model in audit system"
     },
