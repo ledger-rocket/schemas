@@ -573,258 +573,717 @@
   "additionalProperties": false,
   "examples": [
     {
-      "template_id": 132,
+      "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.schema.json",
+      "template_id": 7010,
       "site_id": 1,
-      "name": "Cross-Border Payment via Nostro/Vostro",
-      "description": "Processes cross-border payments using nostro/vostro accounts with automatic fee calculation based on amount tiers",
-      "trigger": "Customer requests cross-border payment",
-      "accounting_treatments": [
+      "name": "Retail GBP/EUR Exchange",
+      "product": "FX",
+      "event_type": "CURRENCY_EXCHANGE",
+      "category": "RETAIL_FX",
+      "description": "Exchanges a customer's money between their own GBP and EUR accounts at Northstar UK at a quoted rate; Northstar FX takes the other side through its vostros. Standard and Plus plans pay a fair-usage fee above their monthly allowance, at a rate set by the size of the exchange. The fee is FX income in the sold currency, booked by channel: app or partner app.",
+      "trigger": "Customer accepts a GBP/EUR exchange quote between two of their own accounts, in the Northstar app or in a partner app",
+      "capabilities": [
+        "allows_fx_transfers"
+      ],
+      "account_code_validations": [
         {
-          "type": "TREATMENT_PRINCIPAL",
-          "description": "Reclassify customer cash into the nostro settlement account",
-          "policy_refs": [
-            {
-              "id": "POLICY-CASH-001"
-            }
-          ]
+          "purpose": "customer_source_liability",
+          "mask": "21010",
+          "description": "Customer's current account in the currency they sell"
         },
         {
-          "type": "TREATMENT_FEE_ON_RECEIPT",
-          "description": "Recognize fee revenue when collected",
+          "purpose": "customer_target_liability",
+          "mask": "21010",
+          "description": "Customer's current account in the currency they buy"
+        },
+        {
+          "purpose": "fx_hub_vostro_source",
+          "mask": "22020",
+          "description": "Northstar FX vostro at Northstar UK in the sold currency"
+        },
+        {
+          "purpose": "fx_hub_vostro_target",
+          "mask": "22020",
+          "description": "Northstar FX vostro at Northstar UK in the bought currency"
+        },
+        {
+          "purpose": "fx_fee_revenue_app_gbp",
+          "mask": "40040",
+          "description": "FX income of Northstar UK from in-app exchanges, GBP ledger"
+        },
+        {
+          "purpose": "fx_fee_revenue_app_eur",
+          "mask": "40040",
+          "description": "FX income of Northstar UK from in-app exchanges, EUR ledger"
+        },
+        {
+          "purpose": "fx_fee_revenue_partner_gbp",
+          "mask": "40040",
+          "description": "FX income of Northstar UK from partner-app exchanges, GBP ledger"
+        },
+        {
+          "purpose": "fx_fee_revenue_partner_eur",
+          "mask": "40040",
+          "description": "FX income of Northstar UK from partner-app exchanges, EUR ledger"
+        }
+      ],
+      "accounting_treatments": [
+        {
+          "type": "internal_transfer",
           "policy_refs": [
             {
-              "id": "POLICY-FEE-002"
+              "id": "IAS21.21"
             }
-          ]
+          ],
+          "description": "The customer's deposits are exchanged against Northstar FX's vostro balances at the quoted spot rate on the transaction date."
+        },
+        {
+          "type": "fee_revenue",
+          "policy_refs": [
+            {
+              "id": "IFRS15.38"
+            },
+            {
+              "id": "IFRS15.114"
+            }
+          ],
+          "description": "The fair-usage fee is revenue at the point in time the exchange is performed. It is booked by sales channel, app or partner app, so revenue can be disaggregated by channel."
         }
       ],
       "financial_statements_impact": [
         {
-          "account_type": "ASSET",
-          "impact": "no_impact",
-          "ledger_scope": "primary",
-          "description": "Principal leg reclassifies assets within the primary ledger"
+          "ledger_scope": "operational_source",
+          "account_type": "LIABILITY",
+          "impact": "decrease_or_no_impact",
+          "description": "The customer's deposit falls by the amount sold plus any fee; Northstar FX's vostro rises by the amount sold."
         },
         {
+          "ledger_scope": "operational_source",
           "account_type": "REVENUE",
-          "impact": "increase",
-          "ledger_scope": "primary",
-          "description": "Fee leg increases revenue when fees are collected"
+          "impact": "increase_or_no_impact",
+          "description": "FX income rises by the fair-usage fee when one is due."
+        },
+        {
+          "ledger_scope": "operational_target",
+          "account_type": "LIABILITY",
+          "impact": "decrease_or_no_impact",
+          "description": "Northstar FX's vostro falls and the customer's deposit rises by the same bought amount, so total liabilities on this ledger do not change."
         }
       ],
-      "product": "FX_SERVICES",
-      "event_type": "TRANSFER",
-      "category": "PAYMENT",
+      "ledger_scope_descriptions": {
+        "operational_source": "Northstar UK operational ledger in the currency the customer sells.",
+        "operational_target": "Northstar UK operational ledger in the currency the customer buys."
+      },
       "variables": [
         {
-          "name": "PRINCIPAL_AMOUNT",
-          "value": "amount",
-          "description": "Main transfer amount"
+          "name": "sell_currency",
+          "value": "accounts.customer_source_liability.ledger.currency_code",
+          "description": "Currency the customer sells. The fee is booked on this currency's ledger."
         },
         {
-          "name": "FEE_BASIS_POINTS",
-          "value": "metadata.fee_basis_points",
-          "description": "Fee percentage expressed in basis points"
+          "name": "buy_amount",
+          "value": "convert(amount, sell_currency, accounts.customer_target_liability.ledger.currency_code, event.extra_metadata.fx_rate)",
+          "description": "Amount the customer receives, in minor units of the bought currency, at the quoted rate.",
+          "type": "integer",
+          "export": true
         },
         {
-          "name": "RAW_FEE",
-          "value": "divide_with_bankers_rounding(PRINCIPAL_AMOUNT * FEE_BASIS_POINTS, 10000)",
-          "description": "Calculated fee using banker’s rounding"
+          "name": "chargeable_amount",
+          "value": "event.extra_metadata.plan in ['STANDARD', 'PLUS'] ? max(0, amount - event.extra_metadata.fee_free_allowance_remaining) : 0",
+          "description": "Part of the sold amount above the plan's remaining fee-free allowance; zero on plans without the fee."
         },
         {
-          "name": "FEE",
-          "value": "RAW_FEE",
-          "description": "Collected fee amount"
+          "name": "fee_rate_bps",
+          "value": "amount >= 2500000 ? 25 : (amount >= 500000 ? 35 : 50)",
+          "description": "Fee rate in basis points, by the size of the exchange: 0.5% below 5,000.00, 0.35% from 5,000.00, 0.25% from 25,000.00 of the sold currency."
         },
         {
-          "name": "SHOULD_EXECUTE_MAIN",
-          "value": "PRINCIPAL_AMOUNT > 0",
-          "description": "Only execute principal leg when amount is positive"
+          "name": "fx_fee",
+          "value": "has(event.extra_metadata.fee_waiver_reason) ? 0 : divide_with_bankers_rounding(chargeable_amount * fee_rate_bps, 10000)",
+          "description": "Fair-usage fee in minor units of the sold currency, rounded half to even; zero when the event carries a fee waiver.",
+          "type": "integer",
+          "export": true
         },
         {
-          "name": "SHOULD_CHARGE_FEE",
-          "value": "FEE > 0",
-          "description": "Charge fee when the calculated fee is positive"
+          "name": "via_partner_app",
+          "value": "event.extra_metadata.channel == 'PARTNER_API'",
+          "description": "True when a partner app started the exchange through the Northstar API."
+        },
+        {
+          "name": "apply_fee_app_gbp",
+          "value": "fx_fee > 0 && !via_partner_app && sell_currency == 'GBP'",
+          "description": "A GBP fee is due on an exchange made in the Northstar app."
+        },
+        {
+          "name": "apply_fee_app_eur",
+          "value": "fx_fee > 0 && !via_partner_app && sell_currency == 'EUR'",
+          "description": "A EUR fee is due on an exchange made in the Northstar app."
+        },
+        {
+          "name": "apply_fee_partner_gbp",
+          "value": "fx_fee > 0 && via_partner_app && sell_currency == 'GBP'",
+          "description": "A GBP fee is due on an exchange made in a partner app."
+        },
+        {
+          "name": "apply_fee_partner_eur",
+          "value": "fx_fee > 0 && via_partner_app && sell_currency == 'EUR'",
+          "description": "A EUR fee is due on an exchange made in a partner app."
+        },
+        {
+          "name": "fx_fee_revenue_app_gbp",
+          "value": "\"299b5d48-95e9-50c1-aa0d-25cb811c4019\"",
+          "description": "FX trading income - GBP, UK: fees on exchanges made in the Northstar app."
+        },
+        {
+          "name": "fx_fee_revenue_app_eur",
+          "value": "\"a35e0f15-f384-567c-89ba-90228102b57f\"",
+          "description": "FX trading income - EUR, UK: fees on exchanges made in the Northstar app."
+        },
+        {
+          "name": "fx_fee_revenue_partner_gbp",
+          "value": "\"350dbc3d-cfad-5342-b262-69287247f9d4\"",
+          "description": "FX trading income, partner apps - GBP, UK: fees on exchanges made in partner apps."
+        },
+        {
+          "name": "fx_fee_revenue_partner_eur",
+          "value": "\"84f2142b-9069-5a17-bda8-93eea7fae510\"",
+          "description": "FX trading income, partner apps - EUR, UK: fees on exchanges made in partner apps."
         }
       ],
       "validations": [
         {
-          "name": "MINIMUM_AMOUNT",
-          "expression": "PRINCIPAL_AMOUNT >= 100",
-          "description": "Ensure minimum transaction amount"
+          "name": "currencies_differ",
+          "expression": "sell_currency != accounts.customer_target_liability.ledger.currency_code",
+          "description": "An exchange must sell one currency and buy another."
         },
         {
-          "name": "SAME_CURRENCY",
-          "expression": "accounts.from.ledger.currency.currency_code == accounts.to.ledger.currency.currency_code",
-          "description": "Ensure same currency for non-FX transfers"
+          "name": "customer_owns_both_accounts",
+          "expression": "accounts.customer_source_liability.entity_id == accounts.customer_target_liability.entity_id",
+          "description": "Customers exchange only between their own accounts."
         },
         {
-          "name": "FEE_BPS_NON_NEGATIVE",
-          "expression": "FEE_BASIS_POINTS >= 0",
-          "description": "Fee basis points must be non-negative"
+          "name": "fx_hub_owns_both_vostros",
+          "expression": "accounts.fx_hub_vostro_source.entity_id == accounts.fx_hub_vostro_target.entity_id",
+          "description": "Both sides of the exchange sit with the same group entity."
+        },
+        {
+          "name": "rate_quoted_for_this_pair",
+          "expression": "split_nth(event.extra_metadata.rate_pair, '/', 0) == sell_currency && split_nth(event.extra_metadata.rate_pair, '/', 1) == accounts.customer_target_liability.ledger.currency_code",
+          "description": "The quoted rate must be for the currencies being exchanged, sold then bought."
+        },
+        {
+          "name": "quote_still_valid",
+          "expression": "event.extra_metadata.quote_expires_at >= event.occurred_at",
+          "description": "The exchange must happen before the customer's quote expires."
         }
       ],
       "legs": [
         {
           "leg_number": 1,
-          "debit_account": "accounts.from.account_id",
-          "debit_account_type": "ASSET",
-          "credit_account": "accounts.to.account_id",
-          "credit_account_type": "ASSET",
-          "amount": "PRINCIPAL_AMOUNT",
-          "description": "Principal transfer leg",
-          "ledger_scope": "primary",
-          "treatment_type": "TREATMENT_PRINCIPAL",
-          "condition": "SHOULD_EXECUTE_MAIN"
+          "description": "Customer sells the currency to Northstar FX at the quoted rate.",
+          "debit_account": "accounts.customer_source_liability.account_id",
+          "debit_account_type": "LIABILITY",
+          "credit_account": "accounts.fx_hub_vostro_source.account_id",
+          "credit_account_type": "LIABILITY",
+          "amount": "amount",
+          "condition": "always_true",
+          "ledger_scope": "operational_source",
+          "treatment_type": "internal_transfer"
         },
         {
           "leg_number": 2,
-          "debit_account": "accounts.from.account_id",
-          "debit_account_type": "ASSET",
-          "credit_account": "accounts.fee.account_id",
+          "description": "Northstar FX delivers the bought currency to the customer.",
+          "debit_account": "accounts.fx_hub_vostro_target.account_id",
+          "debit_account_type": "LIABILITY",
+          "credit_account": "accounts.customer_target_liability.account_id",
+          "credit_account_type": "LIABILITY",
+          "amount": "buy_amount",
+          "condition": "always_true",
+          "ledger_scope": "operational_target",
+          "treatment_type": "internal_transfer"
+        },
+        {
+          "leg_number": 3,
+          "description": "Charge the GBP fair-usage fee on an in-app exchange.",
+          "debit_account": "accounts.customer_source_liability.account_id",
+          "debit_account_type": "LIABILITY",
+          "credit_account": "fx_fee_revenue_app_gbp",
           "credit_account_type": "REVENUE",
-          "amount": "FEE",
-          "description": "Fee collection leg",
-          "ledger_scope": "primary",
-          "treatment_type": "TREATMENT_FEE_ON_RECEIPT",
-          "condition": "SHOULD_CHARGE_FEE"
-        }
-      ],
-      "account_code_validations": [
-        {
-          "purpose": "from",
-          "mask": "21*",
-          "description": "Customer deposit accounts"
+          "amount": "fx_fee",
+          "condition": "apply_fee_app_gbp",
+          "ledger_scope": "operational_source",
+          "treatment_type": "fee_revenue"
         },
         {
-          "purpose": "to",
-          "mask": "21*",
-          "description": "Customer deposit accounts"
+          "leg_number": 4,
+          "description": "Charge the EUR fair-usage fee on an in-app exchange.",
+          "debit_account": "accounts.customer_source_liability.account_id",
+          "debit_account_type": "LIABILITY",
+          "credit_account": "fx_fee_revenue_app_eur",
+          "credit_account_type": "REVENUE",
+          "amount": "fx_fee",
+          "condition": "apply_fee_app_eur",
+          "ledger_scope": "operational_source",
+          "treatment_type": "fee_revenue"
         },
         {
-          "purpose": "fee",
-          "mask": "400*",
-          "description": "Fee income accounts"
+          "leg_number": 5,
+          "description": "Charge the GBP fair-usage fee on a partner-app exchange.",
+          "debit_account": "accounts.customer_source_liability.account_id",
+          "debit_account_type": "LIABILITY",
+          "credit_account": "fx_fee_revenue_partner_gbp",
+          "credit_account_type": "REVENUE",
+          "amount": "fx_fee",
+          "condition": "apply_fee_partner_gbp",
+          "ledger_scope": "operational_source",
+          "treatment_type": "fee_revenue"
+        },
+        {
+          "leg_number": 6,
+          "description": "Charge the EUR fair-usage fee on a partner-app exchange.",
+          "debit_account": "accounts.customer_source_liability.account_id",
+          "debit_account_type": "LIABILITY",
+          "credit_account": "fx_fee_revenue_partner_eur",
+          "credit_account_type": "REVENUE",
+          "amount": "fx_fee",
+          "condition": "apply_fee_partner_eur",
+          "ledger_scope": "operational_source",
+          "treatment_type": "fee_revenue"
         }
       ],
       "metadata_schema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
-        "required": [
-          "customer_name",
-          "reference",
-          "fee_basis_points",
-          "swift_bic"
-        ],
+        "additionalProperties": false,
         "properties": {
-          "customer_name": {
+          "fx_rate": {
             "type": "string",
-            "description": "Name of the customer"
+            "pattern": "^[0-9]+(\\.[0-9]+)?$",
+            "description": "Quoted customer rate as a decimal string: units of the bought currency for one unit of the sold currency."
           },
-          "reference": {
+          "rate_pair": {
             "type": "string",
-            "description": "Transaction reference"
+            "enum": [
+              "GBP/EUR",
+              "EUR/GBP"
+            ],
+            "description": "Currency pair of the quote as ISO 4217 codes, sold then bought. This template books fees on the GBP and EUR ledgers only."
           },
-          "fee_basis_points": {
+          "quote_expires_at": {
             "type": "integer",
             "minimum": 0,
-            "description": "Fee percentage in basis points"
+            "description": "Quote expiry in Unix milliseconds; the exchange must occur at or before it."
           },
-          "swift_bic": {
+          "plan": {
             "type": "string",
-            "description": "Receiving bank BIC"
+            "enum": [
+              "STANDARD",
+              "PLUS",
+              "PREMIUM",
+              "METAL",
+              "ULTRA"
+            ],
+            "description": "Customer's account plan. Standard and Plus pay the fair-usage fee above their monthly allowance."
           },
-          "beneficiary_country": {
-            "type": "string",
-            "description": "Beneficiary country ISO code"
+          "fee_free_allowance_remaining": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Fee-free exchange allowance left this month, in minor units of the sold currency. Applies to Standard and Plus plans."
           },
-          "network": {
+          "channel": {
             "type": "string",
-            "description": "Payment network identifier"
+            "enum": [
+              "APP",
+              "PARTNER_API"
+            ],
+            "description": "Where the customer made the exchange: APP is the Northstar app; PARTNER_API is a partner app through the Northstar API. Sets the income account for the fee."
           },
-          "payment_method": {
+          "fee_waiver_reason": {
             "type": "string",
-            "description": "Payment method used"
+            "enum": [
+              "PROMOTION",
+              "SERVICE_RECOVERY"
+            ],
+            "description": "Why the fee is waived. Present only on a waived exchange, which books no fee."
           },
-          "notes": {
+          "quote_id": {
             "type": "string",
-            "description": "Additional notes"
+            "minLength": 1,
+            "description": "Identifier of the exchange quote the customer accepted."
           }
         },
-        "additionalProperties": false
+        "required": [
+          "fx_rate",
+          "rate_pair",
+          "quote_expires_at",
+          "plan",
+          "fee_free_allowance_remaining",
+          "channel"
+        ]
       },
       "examples": [
         {
-          "name": "Standard transfer with fee",
+          "name": "Standard plan in the app: GBP to EUR",
+          "description": "Sells GBP 1,000.00 at 1.1650 for EUR 1,165.00. GBP 400.00 of allowance is left, so the 0.5% fee applies to GBP 600.00: GBP 3.00, booked as app FX income.",
           "event_request": {
-            "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
-            "event_id": "550e8400-e29b-41d4-a716-446655440000",
-            "template_ids": [
-              132
-            ],
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "event_id": "01a0f6e8-ff60-7331-81db-33a057ac83d8",
             "site_id": 1,
-            "amount": 5000,
-            "occurred_at": 1700746200000,
+            "occurred_at": 1790848860000,
+            "amount": 100000,
+            "event_source": "fx-service",
+            "template_ids": [
+              7010
+            ],
             "accounts": [
               {
-                "purpose": "from",
-                "account_id": "01920000-0000-7000-8000-000000000001"
+                "purpose": "customer_source_liability",
+                "account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95"
               },
               {
-                "purpose": "to",
-                "account_id": "01920000-0000-7000-8000-000000000002"
+                "purpose": "customer_target_liability",
+                "account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
               },
               {
-                "purpose": "fee",
-                "account_id": "01920000-0000-7000-8000-00000000000f"
+                "purpose": "fx_hub_vostro_source",
+                "account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77"
+              },
+              {
+                "purpose": "fx_hub_vostro_target",
+                "account_id": "d061663f-b19c-5c77-a745-b47950f0c30c"
               }
             ],
             "extra_metadata": {
-              "customer_name": "John Doe",
-              "reference": "INV-2024-001",
-              "fee_basis_points": 50,
-              "swift_bic": "AAAABBCCXXX",
-              "beneficiary_country": "GB",
-              "network": "SWIFT"
+              "fx_rate": "1.1650",
+              "rate_pair": "GBP/EUR",
+              "quote_expires_at": 1790848890000,
+              "plan": "STANDARD",
+              "fee_free_allowance_remaining": 40000,
+              "channel": "APP",
+              "quote_id": "QT-2026-10-01-0001"
             }
           },
           "expected_transfers": [
             {
-              "debit_account_id": "01920000-0000-7000-8000-000000000001",
-              "debit_account_name": "Customer Checking",
-              "debit_account_code": "2100",
-              "debit_account_type": "ASSET",
-              "credit_account_id": "01920000-0000-7000-8000-000000000002",
-              "credit_account_name": "Merchant Settlement",
-              "credit_account_code": "2100",
-              "credit_account_type": "ASSET",
-              "amount": 5000,
-              "ledger_scope": "primary",
               "leg_number": 1,
-              "is_rollup": false
+              "amount": 100000,
+              "debit_account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95",
+              "credit_account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77"
             },
             {
-              "debit_account_id": "01920000-0000-7000-8000-000000000001",
-              "debit_account_name": "Customer Checking",
-              "debit_account_code": "2100",
-              "debit_account_type": "ASSET",
-              "credit_account_id": "01920000-0000-7000-8000-00000000000f",
-              "credit_account_name": "Fee Income",
-              "credit_account_code": "4000",
-              "credit_account_type": "REVENUE",
-              "amount": 25,
-              "ledger_scope": "primary",
               "leg_number": 2,
-              "is_rollup": false
+              "amount": 116500,
+              "debit_account_id": "d061663f-b19c-5c77-a745-b47950f0c30c",
+              "credit_account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
+            },
+            {
+              "leg_number": 3,
+              "amount": 300,
+              "debit_account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95",
+              "credit_account_id": "299b5d48-95e9-50c1-aa0d-25cb811c4019"
+            }
+          ]
+        },
+        {
+          "name": "Standard plan in the app: EUR to GBP",
+          "description": "Sells EUR 500.00 at 0.8580 for GBP 429.00. No allowance is left, so the 0.5% fee applies to the whole amount: EUR 2.50, booked on the EUR ledger.",
+          "event_request": {
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "event_id": "01a0f6ea-d420-75d1-9fe9-bf4956699de6",
+            "site_id": 1,
+            "occurred_at": 1790848980000,
+            "amount": 50000,
+            "event_source": "fx-service",
+            "template_ids": [
+              7010
+            ],
+            "accounts": [
+              {
+                "purpose": "customer_source_liability",
+                "account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
+              },
+              {
+                "purpose": "customer_target_liability",
+                "account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95"
+              },
+              {
+                "purpose": "fx_hub_vostro_source",
+                "account_id": "d061663f-b19c-5c77-a745-b47950f0c30c"
+              },
+              {
+                "purpose": "fx_hub_vostro_target",
+                "account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77"
+              }
+            ],
+            "extra_metadata": {
+              "fx_rate": "0.8580",
+              "rate_pair": "EUR/GBP",
+              "quote_expires_at": 1790849010000,
+              "plan": "STANDARD",
+              "fee_free_allowance_remaining": 0,
+              "channel": "APP",
+              "quote_id": "QT-2026-10-01-0003"
+            }
+          },
+          "expected_transfers": [
+            {
+              "leg_number": 1,
+              "amount": 50000,
+              "debit_account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5",
+              "credit_account_id": "d061663f-b19c-5c77-a745-b47950f0c30c"
+            },
+            {
+              "leg_number": 2,
+              "amount": 42900,
+              "debit_account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77",
+              "credit_account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95"
+            },
+            {
+              "leg_number": 4,
+              "amount": 250,
+              "debit_account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5",
+              "credit_account_id": "a35e0f15-f384-567c-89ba-90228102b57f"
+            }
+          ]
+        },
+        {
+          "name": "Plus plan in a partner app: GBP 12,000 to EUR",
+          "description": "Sells GBP 12,000.00 at 1.1650 for EUR 13,980.00. The 0.35% rate applies from 5,000.00. GBP 1,000.00 of allowance is left, so the fee is GBP 38.50, booked as partner-app FX income.",
+          "event_request": {
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "event_id": "01a0f6eb-be80-70a4-948f-7fbfe3ffefad",
+            "site_id": 1,
+            "occurred_at": 1790849040000,
+            "amount": 1200000,
+            "event_source": "fx-service",
+            "template_ids": [
+              7010
+            ],
+            "accounts": [
+              {
+                "purpose": "customer_source_liability",
+                "account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95"
+              },
+              {
+                "purpose": "customer_target_liability",
+                "account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
+              },
+              {
+                "purpose": "fx_hub_vostro_source",
+                "account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77"
+              },
+              {
+                "purpose": "fx_hub_vostro_target",
+                "account_id": "d061663f-b19c-5c77-a745-b47950f0c30c"
+              }
+            ],
+            "extra_metadata": {
+              "fx_rate": "1.1650",
+              "rate_pair": "GBP/EUR",
+              "quote_expires_at": 1790849070000,
+              "plan": "PLUS",
+              "fee_free_allowance_remaining": 100000,
+              "channel": "PARTNER_API",
+              "quote_id": "QT-2026-10-01-0004"
+            }
+          },
+          "expected_transfers": [
+            {
+              "leg_number": 1,
+              "amount": 1200000,
+              "debit_account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95",
+              "credit_account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77"
+            },
+            {
+              "leg_number": 2,
+              "amount": 1398000,
+              "debit_account_id": "d061663f-b19c-5c77-a745-b47950f0c30c",
+              "credit_account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
+            },
+            {
+              "leg_number": 5,
+              "amount": 3850,
+              "debit_account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95",
+              "credit_account_id": "350dbc3d-cfad-5342-b262-69287247f9d4"
+            }
+          ]
+        },
+        {
+          "name": "Standard plan in a partner app: EUR 30,000 to GBP",
+          "description": "Sells EUR 30,000.00 at 0.8580 for GBP 25,740.00. The 0.25% rate applies from 25,000.00, so the fee is EUR 75.00, booked as partner-app FX income on the EUR ledger.",
+          "event_request": {
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "event_id": "01a0f6ec-a8e0-73b7-a962-494a5a3c88a9",
+            "site_id": 1,
+            "occurred_at": 1790849100000,
+            "amount": 3000000,
+            "event_source": "fx-service",
+            "template_ids": [
+              7010
+            ],
+            "accounts": [
+              {
+                "purpose": "customer_source_liability",
+                "account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
+              },
+              {
+                "purpose": "customer_target_liability",
+                "account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95"
+              },
+              {
+                "purpose": "fx_hub_vostro_source",
+                "account_id": "d061663f-b19c-5c77-a745-b47950f0c30c"
+              },
+              {
+                "purpose": "fx_hub_vostro_target",
+                "account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77"
+              }
+            ],
+            "extra_metadata": {
+              "fx_rate": "0.8580",
+              "rate_pair": "EUR/GBP",
+              "quote_expires_at": 1790849130000,
+              "plan": "STANDARD",
+              "fee_free_allowance_remaining": 0,
+              "channel": "PARTNER_API",
+              "quote_id": "QT-2026-10-01-0005"
+            }
+          },
+          "expected_transfers": [
+            {
+              "leg_number": 1,
+              "amount": 3000000,
+              "debit_account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5",
+              "credit_account_id": "d061663f-b19c-5c77-a745-b47950f0c30c"
+            },
+            {
+              "leg_number": 2,
+              "amount": 2574000,
+              "debit_account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77",
+              "credit_account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95"
+            },
+            {
+              "leg_number": 6,
+              "amount": 7500,
+              "debit_account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5",
+              "credit_account_id": "84f2142b-9069-5a17-bda8-93eea7fae510"
+            }
+          ]
+        },
+        {
+          "name": "Premium plan, no fee: GBP to EUR",
+          "description": "Sells GBP 2,500.00 at 1.1650 for EUR 2,912.50. Premium pays no fair-usage fee, so no fee leg runs.",
+          "event_request": {
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "event_id": "01a0f6e9-e9c0-7d8b-b363-49f358ed970f",
+            "site_id": 1,
+            "occurred_at": 1790848920000,
+            "amount": 250000,
+            "event_source": "fx-service",
+            "template_ids": [
+              7010
+            ],
+            "accounts": [
+              {
+                "purpose": "customer_source_liability",
+                "account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95"
+              },
+              {
+                "purpose": "customer_target_liability",
+                "account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
+              },
+              {
+                "purpose": "fx_hub_vostro_source",
+                "account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77"
+              },
+              {
+                "purpose": "fx_hub_vostro_target",
+                "account_id": "d061663f-b19c-5c77-a745-b47950f0c30c"
+              }
+            ],
+            "extra_metadata": {
+              "fx_rate": "1.1650",
+              "rate_pair": "GBP/EUR",
+              "quote_expires_at": 1790848950000,
+              "plan": "PREMIUM",
+              "fee_free_allowance_remaining": 0,
+              "channel": "APP",
+              "quote_id": "QT-2026-10-01-0002"
+            }
+          },
+          "expected_transfers": [
+            {
+              "leg_number": 1,
+              "amount": 250000,
+              "debit_account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95",
+              "credit_account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77"
+            },
+            {
+              "leg_number": 2,
+              "amount": 291250,
+              "debit_account_id": "d061663f-b19c-5c77-a745-b47950f0c30c",
+              "credit_account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
+            }
+          ]
+        },
+        {
+          "name": "Standard plan with a waived fee: GBP to EUR",
+          "description": "Sells GBP 800.00 at 1.1650 for EUR 932.00. The fee would be GBP 4.00, but the event carries a promotion waiver, so no fee leg runs.",
+          "event_request": {
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "event_id": "01a0f6ed-9340-7a3f-96d1-88605cc895f7",
+            "site_id": 1,
+            "occurred_at": 1790849160000,
+            "amount": 80000,
+            "event_source": "fx-service",
+            "template_ids": [
+              7010
+            ],
+            "accounts": [
+              {
+                "purpose": "customer_source_liability",
+                "account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95"
+              },
+              {
+                "purpose": "customer_target_liability",
+                "account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
+              },
+              {
+                "purpose": "fx_hub_vostro_source",
+                "account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77"
+              },
+              {
+                "purpose": "fx_hub_vostro_target",
+                "account_id": "d061663f-b19c-5c77-a745-b47950f0c30c"
+              }
+            ],
+            "extra_metadata": {
+              "fx_rate": "1.1650",
+              "rate_pair": "GBP/EUR",
+              "quote_expires_at": 1790849190000,
+              "plan": "STANDARD",
+              "fee_free_allowance_remaining": 0,
+              "channel": "APP",
+              "quote_id": "QT-2026-10-01-0006",
+              "fee_waiver_reason": "PROMOTION"
+            }
+          },
+          "expected_transfers": [
+            {
+              "leg_number": 1,
+              "amount": 80000,
+              "debit_account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95",
+              "credit_account_id": "d7f0e51c-fe8c-5131-9503-d35e737d8a77"
+            },
+            {
+              "leg_number": 2,
+              "amount": 93200,
+              "debit_account_id": "d061663f-b19c-5c77-a745-b47950f0c30c",
+              "credit_account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
             }
           ]
         }
-      ],
-      "schema": {
-        "name": "templates.core",
-        "version": "1.0.0",
-        "uri": "/schemas/domain/template.schema.json"
-      }
+      ]
     }
   ],
   "version": "1.0.0"
