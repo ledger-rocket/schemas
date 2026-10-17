@@ -159,11 +159,13 @@
         "policy_read_at": {
           "type": "integer",
           "minimum": 1,
+          "maximum": 4102444800000,
           "description": "When the appraisal policy was read, in Unix milliseconds (UTC)"
         },
         "policy_sha256": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
+          "maxLength": 71,
           "description": "SHA-256 of the appraisal policy that was read, as sha256: and 64 lowercase hex digits"
         },
         "status": {
