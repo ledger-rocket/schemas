@@ -102,6 +102,9 @@
       "type": "object",
       "description": "Additional context and metadata for the audit record",
       "properties": {
+        "appraisal": {
+          "$ref": "#/$defs/auditSlugExtraMetadataAppraisal"
+        },
         "approved_by_committee": {
           "type": "array",
           "items": {
@@ -143,6 +146,37 @@
         }
       },
       "additionalProperties": true
+    },
+    "auditSlugExtraMetadataAppraisal": {
+      "type": "object",
+      "description": "Appraisal state that accounting-rule-engine records on template submit",
+      "required": [
+        "policy_read_at",
+        "policy_sha256",
+        "status"
+      ],
+      "properties": {
+        "policy_read_at": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4102444800000,
+          "description": "When the appraisal policy was read, in Unix milliseconds (UTC)"
+        },
+        "policy_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "maxLength": 71,
+          "description": "SHA-256 of the appraisal policy that was read, as sha256: and 64 lowercase hex digits"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "PENDING"
+          ],
+          "description": "Appraisal status"
+        }
+      },
+      "additionalProperties": false
     },
     "auditSlugExtraMetadataChangeSummary": {
       "type": "object",
