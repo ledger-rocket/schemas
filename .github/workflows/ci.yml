@@ -31,6 +31,8 @@ jobs:
           check-jsonschema --check-metaschema "${files[@]}"
       - name: Resolve cross-file $refs against working-tree copies
         run: python .github/scripts/check_refs.py
+      - name: Validate template fixtures against the working-tree schema
+        run: python .github/scripts/check_instances.py
 
   lint-yaml:
     name: Lint workflow YAML

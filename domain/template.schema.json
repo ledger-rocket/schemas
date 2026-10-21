@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.schema.json",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/v1.1.0/template.schema.json",
   "title": "Template",
   "description": "Template defining business logic for transforming events into ledger transfers",
   "type": "object",
@@ -28,7 +28,7 @@
       "pattern": "^https://ledger-rocket\\.github\\.io/schemas/.*$",
       "description": "Canonical path to the JSON schema that describes this template",
       "examples": [
-        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.schema.json"
+        "https://ledger-rocket.github.io/schemas/domain/v1.1.0/template.schema.json"
       ]
     },
     "template_id": {
@@ -114,6 +114,66 @@
         ]
       ],
       "$comment": "New capabilities can be added via enum expansion without altering the template structure."
+    },
+    "execution_class": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "maxLength": 48,
+      "description": "Execution class of the template. accounting-rule-engine checks at Approve that the Stytch RBAC policy holds the resource `class-<execution_class>`, which is the one definition of the class. Absent means that the template is not yet classified: a consumer must not infer a class from absence. A later major version of this schema makes the field required.",
+      "examples": [
+        "payments"
+      ]
+    },
+    "execution_approval": {
+      "type": "object",
+      "description": "Whether an event that uses this template needs a person's approval before it posts. `always`: the event waits as a proposal until a person approves it. `never`: the event posts without approval. Absence is not a default: a consumer must not infer a mode from absence.",
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "never",
+            "always"
+          ],
+          "description": "The approval mode."
+        },
+        "proposal_ttl": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,3}[hd]$",
+          "maxLength": 5,
+          "description": "How long a proposal may wait for approval, counted from its creation. A day is 24 hours. The writer expires a proposal no later than the event's occurred_at plus the writer's age limit for the event's directives, less a margin, whichever comes first.",
+          "examples": [
+            "7d",
+            "48h"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "never"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "proposal_ttl"
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "proposal_ttl"
+        ]
+      },
+      "$comment": "A mode other than never requires proposal_ttl, so a later gating mode needs no change to this rule."
     },
     "account_code_validations": {
       "type": "array",
@@ -573,7 +633,7 @@
   "additionalProperties": false,
   "examples": [
     {
-      "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.schema.json",
+      "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.1.0/template.schema.json",
       "template_id": 7010,
       "site_id": 1,
       "name": "Retail GBP/EUR Exchange",
@@ -585,6 +645,11 @@
       "capabilities": [
         "allows_fx_transfers"
       ],
+      "execution_class": "payments",
+      "execution_approval": {
+        "mode": "always",
+        "proposal_ttl": "7d"
+      },
       "account_code_validations": [
         {
           "purpose": "customer_source_liability",
@@ -1286,5 +1351,5 @@
       ]
     }
   ],
-  "version": "1.0.0"
+  "version": "1.1.0"
 }

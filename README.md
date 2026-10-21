@@ -12,6 +12,8 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 | `domain/expected-transfer.schema.json` | Expected transfer output for template validation/testing | https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json |
 | `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
 
+Recent template change: template schema **v1.1.0** adds two optional top-level fields. `execution_class` names the template's execution class. `execution_approval` carries `mode` (`never` or `always`), and every mode other than `never` requires `proposal_ttl`, such as `7d` or `48h`. The template `$id` and its frozen copy move to `domain/v1.1.0/template.schema.json`, and `domain/v1.0.0/` is unchanged. Each consumer takes the fields in its own ticket. accounting-rule-engine pins `domain/v1.0.0/template.schema.json` by path and moves to v1.1.0 in its own ticket. event-service2 bakes the latest `domain/template.schema.json` into its image at build time, and template-agent fetches the latest file at runtime, so each accepts the fields from its next build or fetch. An event-service2 image built before this change drops a template that carries either field, so accounting-rule-engine must not serve such a template in an environment until that environment's writer is rebuilt.
+
 Recent event change: each `accounts` entry now carries `account_id` XOR `external_account_id` (exactly one; `purpose` stays required). `external_account_id` is the customer-supplied external account id, resolved to a Ledger Service account for the site. This matches the contract both Event Service engines already enforce (supplying both or neither is a 422) and relaxes the schema, so existing instances stay valid and the published version stays at **v1.0.0**.
 
 Recent audit-slug change: `description` now carries `pattern: \S`, so a value made only of whitespace is refused. It satisfied `minLength: 1` while recording no reason for the change, and accounting-rule-engine has refused it where the slug is written since v1.41.15 and publishes the same pattern on `AuditSlug.description`. This tightens validation only for whitespace-only descriptions, and none is stored: of 14,260 audit slugs across every dev site, none has a whitespace-only description. The 1,109 blank ones are empty strings, which `minLength: 1` already refused. As the note below says, this schema carries no `version` field to bump.
@@ -29,12 +31,13 @@ Recent workflow change: workflow schema **v1.0.0** requires top-level `accountin
 
 Recent change: template scopes now accept any lower snake case identifier defined by the template (beyond the legacy `primary` / `secondary` values), and the shared treatment-type enum documents the full adapter-supported set. These tighten validation but remain compatible with existing schema consumers, so the published version stays at **v1.0.0**.
 
-Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current published version is **v1.0.0**:
+Each schema exposes a top-level `"version"` field. Each released version, major or minor, gets a frozen copy under `vX.Y.Z/`. The current published version is **v1.1.0** for the template schema (`domain/v1.1.0/template.schema.json`) and **v1.0.0** for the others:
 
 ```
 common/v1.0.0/defs.schema.json
 domain/v1.0.0/event.schema.json
 domain/v1.0.0/template.schema.json
+domain/v1.1.0/template.schema.json
 domain/v1.0.0/workflow.schema.json
 domain/v1.0.0/expected-transfer.schema.json
 ```

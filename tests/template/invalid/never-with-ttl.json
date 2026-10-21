@@ -1,0 +1,11 @@
+{
+  "base": "approval-never.json",
+  "set": {
+    "execution_approval": {
+      "mode": "never",
+      "proposal_ttl": "7d"
+    }
+  },
+  "keyword": "not",
+  "path": "$.execution_approval"
+}

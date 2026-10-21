@@ -1,0 +1,12 @@
+{
+  "base": "approval-always.json",
+  "set": {
+    "execution_approval": {
+      "mode": "always",
+      "proposal_ttl": "7d",
+      "quorum": 2
+    }
+  },
+  "keyword": "additionalProperties",
+  "path": "$.execution_approval"
+}
