@@ -568,6 +568,53 @@
       "minItems": 0,
       "description": "Example scenarios for testing and documentation",
       "$comment": "LIVE templates MUST have valid examples that pass all validations"
+    },
+    "balance_inputs": {
+      "type": "array",
+      "description": "Account balances the template reads (PRO-6908). event-service reads each balance before the engine runs and exposes it to CEL as balances.<purpose> and balance(\"<purpose>\"), signed by the account's normal side (credits - debits for a credit-normal account, debits - credits for a debit-normal one). Omit the field when the template reads no balance.",
+      "items": {
+        "type": "object",
+        "required": [
+          "purpose",
+          "account"
+        ],
+        "properties": {
+          "purpose": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/purposeName",
+            "description": "Name the balance is exposed under in CEL: balances.<purpose>. Unique within the template.",
+            "examples": [
+              "client",
+              "bank",
+              "total"
+            ]
+          },
+          "account": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "^([a-z][a-z0-9_]*|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$",
+            "description": "Account whose balance is read: an account purpose declared in account_code_validations (an event account or a constant account variable), or a literal account UUID for an account the event does not name, such as a rollup parent.",
+            "examples": [
+              "client",
+              "018cb4c6-7589-7f87-8b4e-123456789ac3"
+            ]
+          },
+          "measure": {
+            "type": "string",
+            "enum": [
+              "posted",
+              "available"
+            ],
+            "description": "Which balance is read. posted (the default when omitted) reads posted totals; available also subtracts pending amounts that move the balance against the account's normal side."
+          },
+          "lock": {
+            "type": "boolean",
+            "description": "Whether event-service locks the account from the balance read to the ledger commit. Omitted means true. false reads without the lock (the snapshot is still recorded on the event); it is safe only when every event type that can move the value in the unsafe direction is serialised by another locked input."
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 0
     }
   },
   "additionalProperties": false,
