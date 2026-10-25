@@ -16,8 +16,11 @@
   "properties": {
     "$schema": {
       "type": "string",
-      "pattern": "^https://ledger-rocket\\.github\\.io/schemas/.*$",
-      "description": "Canonical path to the JSON schema that describes this event payload",
+      "enum": [
+        "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
+        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json"
+      ],
+      "description": "Published URL of the event schema that describes this event payload: the latest schema or the frozen v1.0.0 copy",
       "examples": [
         "https://ledger-rocket.github.io/schemas/domain/event.schema.json"
       ]
