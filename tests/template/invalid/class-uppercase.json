@@ -1,0 +1,8 @@
+{
+  "base": "approval-always.json",
+  "set": {
+    "execution_class": "Payments"
+  },
+  "keyword": "pattern",
+  "path": "$.execution_class"
+}

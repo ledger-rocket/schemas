@@ -1,0 +1,10 @@
+{
+  "base": "approval-always.json",
+  "set": {
+    "execution_approval": {
+      "mode": "always"
+    }
+  },
+  "keyword": "required",
+  "path": "$.execution_approval"
+}

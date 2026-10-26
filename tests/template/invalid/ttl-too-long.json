@@ -1,0 +1,11 @@
+{
+  "base": "approval-always.json",
+  "set": {
+    "execution_approval": {
+      "mode": "always",
+      "proposal_ttl": "1000d\n"
+    }
+  },
+  "keyword": "maxLength",
+  "path": "$.execution_approval.proposal_ttl"
+}
