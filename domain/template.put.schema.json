@@ -23,11 +23,12 @@
   ],
   "properties": {
     "$schema": {
-      "$ref": "template.schema.json#/properties/$schema",
-      "description": "Canonical path to the JSON schema that describes this request body. accounting-rule-engine stores the template with the domain template schema URL in its place.",
-      "examples": [
+      "type": "string",
+      "enum": [
+        "https://ledger-rocket.github.io/schemas/domain/template.put.schema.json",
         "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.put.schema.json"
-      ]
+      ],
+      "description": "Names this request schema: one of the two published PUT schema URLs. accounting-rule-engine stores the template with the domain template schema URL in its place."
     },
     "name": {
       "$ref": "template.schema.json#/properties/name"

@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
-"""Offline check that the template PUT request schema stays the domain
+"""Offline check that each template PUT request schema stays the domain
 template schema minus the identity the request path names.
 
-``domain/template.put.schema.json`` describes the body of
-``PUT /api/v1/sites/{site_id}/templates/{template_id}``: every property of
-``domain/template.schema.json`` except ``site_id`` and ``template_id``, each
-one a ``$ref`` to the domain property, and the same ``required`` list without
-the two ids. The script asserts that shape for the latest file and its frozen
-copies, then validates the domain schema's own examples against both schemas:
-an example passes the domain schema, the same example without the ids passes
-the PUT schema, and the example with either id is refused by it.
+``template.put.schema.json`` describes the body of
+``PUT /api/v1/sites/{site_id}/templates/{template_id}``: every property of the
+``template.schema.json`` beside it except ``site_id`` and ``template_id``, each
+one a bare ``$ref`` to that property (``$schema`` excepted: it names the PUT
+schema itself), the same ``required`` list without the two ids, and
+``additionalProperties: false``. Each PUT file is compared with the template in
+its own directory, because that is the file its published ``$ref``s resolve to.
+
+Every PUT file then validates the domain schema's own examples: an example
+with its ``$schema`` set to a PUT URL and without the ids passes, and the same
+body with either id is refused. A self-test first proves that each shape
+check refuses a mutated copy, so a check that can never fail fails here.
 """
 
 from __future__ import annotations
 
+import copy
 import json
-import re
 import sys
 from pathlib import Path
 
@@ -23,10 +27,17 @@ from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
-DOMAIN = Path("domain/template.schema.json")
-PUT_FILES = sorted(Path(".").glob("domain/**/template.put.schema.json"))
+sys.dont_write_bytecode = True  # no __pycache__ beside the scripts
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from check_refs import discover, is_frozen_copy  # noqa: E402  (shared discovery and $id precedence)
+
 PATH_IDS = ("site_id", "template_id")
-FROZEN_SEGMENT = re.compile(r"^v\d+\.\d+\.\d+$")  # release-copy directory, e.g. v1.0.0
+PUT_URLS = [
+    "https://ledger-rocket.github.io/schemas/domain/template.put.schema.json",
+    "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.put.schema.json",
+]
+TOP_LEVEL = {"$schema", "$id", "title", "description", "type", "version", "required", "properties", "additionalProperties"}
+ANNOTATIONS = {"description", "examples", "$comment", "title"}
 
 
 def load(path: Path) -> dict:
@@ -35,20 +46,24 @@ def load(path: Path) -> dict:
 
 
 def registry() -> Registry:
-    """Every schema in the tree, by $id; a latest file wins over its frozen copy."""
-    paths = sorted(
-        (p for p in Path(".").rglob("*.schema.json") if ".git" not in p.parts),
-        key=lambda p: (0 if any(FROZEN_SEGMENT.fullmatch(part) for part in p.parts) else 1, p.as_posix()),
-    )
+    """Every schema by $id, frozen copies first so a latest file wins, as in check_refs."""
     reg = Registry()
-    for path in paths:
-        doc = load(path)
+    for path in sorted(discover(), key=lambda p: (0 if is_frozen_copy(p) else 1, p)):
+        doc = load(Path(path))
         reg = reg.with_resource(doc["$id"], Resource.from_contents(doc, default_specification=DRAFT202012))
     return reg
 
 
 def shape_errors(path: Path, put: dict, domain: dict) -> list[str]:
     errors = []
+    if set(put) - TOP_LEVEL:
+        errors.append(f"{path}: unexpected top-level keywords {sorted(set(put) - TOP_LEVEL)}")
+    if put.get("type") != "object":
+        errors.append(f"{path}: type must be object")
+    if put.get("additionalProperties") is not False:
+        errors.append(f"{path}: additionalProperties must be false")
+    if put.get("version") != domain.get("version"):
+        errors.append(f"{path}: version {put.get('version')} != domain {domain.get('version')}")
     want_props = [k for k in domain["properties"] if k not in PATH_IDS]
     if list(put.get("properties", {})) != want_props:
         errors.append(f"{path}: properties {list(put.get('properties', {}))} != domain minus ids {want_props}")
@@ -56,46 +71,87 @@ def shape_errors(path: Path, put: dict, domain: dict) -> list[str]:
     if put.get("required") != want_required:
         errors.append(f"{path}: required {put.get('required')} != domain minus ids {want_required}")
     for name, sub in put.get("properties", {}).items():
+        if name == "$schema":
+            if sub.get("type") != "string" or sub.get("enum") != PUT_URLS or set(sub) - ANNOTATIONS - {"type", "enum"}:
+                errors.append(f"{path}: properties.$schema must be a string enum of exactly {PUT_URLS}")
+            continue
         if sub.get("$ref") != f"template.schema.json#/properties/{name}":
             errors.append(f"{path}: properties.{name} must be a $ref to the domain property")
-    if put.get("additionalProperties") is not False:
-        errors.append(f"{path}: additionalProperties must be false")
-    if put.get("version") != domain.get("version"):
-        errors.append(f"{path}: version {put.get('version')} != domain {domain.get('version')}")
+        if set(sub) - ANNOTATIONS - {"$ref"}:
+            errors.append(f"{path}: properties.{name} adds {sorted(set(sub) - ANNOTATIONS - {'$ref'})} beyond the $ref")
+    return errors
+
+
+def self_test(put: dict, domain: dict) -> list[str]:
+    """Each mutation must be refused by shape_errors."""
+    mutations = {
+        "an id published": lambda s: s["properties"].update(site_id={"$ref": "template.schema.json#/properties/site_id"}),
+        "a property dropped": lambda s: s["properties"].pop("legs"),
+        "a required field dropped": lambda s: s["required"].remove("legs"),
+        "a sibling constraint": lambda s: s["properties"]["name"].update(maxLength=3),
+        "a wrong $ref": lambda s: s["properties"].update(name={"$ref": "template.schema.json#/properties/product"}),
+        "a top-level keyword": lambda s: s.update(minProperties=1),
+        "additionalProperties open": lambda s: s.update(additionalProperties=True),
+        "a version drift": lambda s: s.update(version="9.9.9"),
+        "a looser $schema": lambda s: s["properties"].update({"$schema": {"$ref": "template.schema.json#/properties/$schema"}}),
+    }
+    errors = []
+    for label, mutate in mutations.items():
+        mutated = copy.deepcopy(put)
+        mutate(mutated)
+        if not shape_errors(Path("<self-test>"), mutated, domain):
+            errors.append(f"self-test: the shape check accepts {label}")
     return errors
 
 
 def main() -> int:
-    domain = load(DOMAIN)
-    if not PUT_FILES:
-        print("error: no domain/**/template.put.schema.json found", file=sys.stderr)
+    put_files = sorted(Path(p) for p in discover() if p.endswith("/template.put.schema.json"))
+    if not put_files:
+        print("error: no template.put.schema.json found", file=sys.stderr)
         return 1
 
     errors: list[str] = []
-    for path in PUT_FILES:
-        errors.extend(shape_errors(path, load(path), domain))
+    # A published PUT schema's $refs resolve by $id, which a latest template and
+    # its frozen copy share, so those copies must agree on what a PUT reuses.
+    by_id: dict[str, list[Path]] = {}
+    for path in put_files:
+        domain_path = path.with_name("template.schema.json")
+        by_id.setdefault(load(domain_path)["$id"], []).append(domain_path)
+    for uri, group in by_id.items():
+        shapes = {json.dumps([load(p)["properties"], load(p)["required"]], sort_keys=True) for p in group}
+        if len(shapes) > 1:
+            errors.append(f"{[p.as_posix() for p in group]} share $id {uri} but differ in properties or required")
 
     reg = registry()
-    domain_validator = Draft202012Validator(domain, registry=reg)
-    put_validator = Draft202012Validator(load(PUT_FILES[0]), registry=reg)
-    examples = domain.get("examples", [])
-    if not examples:
-        errors.append(f"{DOMAIN}: no examples to validate against")
-    for i, example in enumerate(examples):
-        for err in domain_validator.iter_errors(example):
-            errors.append(f"{DOMAIN} examples[{i}]: refused by the domain schema: {err.message}")
-        body = {k: v for k, v in example.items() if k not in PATH_IDS}
-        for err in put_validator.iter_errors(body):
-            errors.append(f"examples[{i}] without ids: refused by the PUT schema: {err.message}")
-        for name in PATH_IDS:
-            if put_validator.is_valid({**body, name: example[name]}):
-                errors.append(f"examples[{i}] with {name}: accepted by the PUT schema")
+    checked = 0
+    for path in put_files:
+        domain_path = path.with_name("template.schema.json")
+        domain, put = load(domain_path), load(path)
+        errors.extend(self_test(put, domain))
+        errors.extend(shape_errors(path, put, domain))
+
+        domain_validator = Draft202012Validator(domain, registry=reg)
+        put_validator = Draft202012Validator(put, registry=reg)
+        examples = domain.get("examples", [])
+        if not examples:
+            errors.append(f"{domain_path}: no examples to validate against")
+        for i, example in enumerate(examples):
+            for err in domain_validator.iter_errors(example):
+                errors.append(f"{domain_path} examples[{i}]: refused by the domain schema: {err.message}")
+            for url in PUT_URLS:
+                body = {k: v for k, v in example.items() if k not in PATH_IDS} | {"$schema": url}
+                for err in put_validator.iter_errors(body):
+                    errors.append(f"{path} examples[{i}] as a PUT body: refused: {err.message}")
+                for name in PATH_IDS:
+                    if put_validator.is_valid(body | {name: example.get(name, 1)}):
+                        errors.append(f"{path} examples[{i}] with {name}: accepted")
+            checked += 1
 
     if errors:
         for line in errors:
             print(f"error: {line}", file=sys.stderr)
         return 1
-    print(f"ok -- {len(PUT_FILES)} PUT schema(s) match the domain template minus {', '.join(PATH_IDS)}; {len(examples)} example(s) checked")
+    print(f"ok -- {len(put_files)} PUT schema(s) match their domain template minus {', '.join(PATH_IDS)}; {checked} example(s) checked")
     return 0
 
 
