@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.put.schema.json",
+  "title": "Template PUT request",
+  "description": "Body of PUT /api/v1/sites/{site_id}/templates/{template_id} on accounting-rule-engine: the domain template without site_id and template_id. The path names both, the service writes them into the stored template, and a body that carries either is refused. Each property reuses the domain template schema's definition.",
+  "type": "object",
+  "version": "1.0.0",
+  "required": [
+    "$schema",
+    "name",
+    "description",
+    "trigger",
+    "accounting_treatments",
+    "account_code_validations",
+    "financial_statements_impact",
+    "product",
+    "event_type",
+    "category",
+    "variables",
+    "validations",
+    "legs",
+    "metadata_schema"
+  ],
+  "properties": {
+    "$schema": {
+      "$ref": "template.schema.json#/properties/$schema",
+      "description": "Canonical path to the JSON schema that describes this request body. accounting-rule-engine stores the template with the domain template schema URL in its place.",
+      "examples": [
+        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.put.schema.json"
+      ]
+    },
+    "name": {
+      "$ref": "template.schema.json#/properties/name"
+    },
+    "product": {
+      "$ref": "template.schema.json#/properties/product"
+    },
+    "event_type": {
+      "$ref": "template.schema.json#/properties/event_type"
+    },
+    "category": {
+      "$ref": "template.schema.json#/properties/category"
+    },
+    "description": {
+      "$ref": "template.schema.json#/properties/description"
+    },
+    "trigger": {
+      "$ref": "template.schema.json#/properties/trigger"
+    },
+    "capabilities": {
+      "$ref": "template.schema.json#/properties/capabilities"
+    },
+    "account_code_validations": {
+      "$ref": "template.schema.json#/properties/account_code_validations"
+    },
+    "accounting_treatments": {
+      "$ref": "template.schema.json#/properties/accounting_treatments"
+    },
+    "financial_statements_impact": {
+      "$ref": "template.schema.json#/properties/financial_statements_impact"
+    },
+    "ledger_scope_descriptions": {
+      "$ref": "template.schema.json#/properties/ledger_scope_descriptions"
+    },
+    "variables": {
+      "$ref": "template.schema.json#/properties/variables"
+    },
+    "validations": {
+      "$ref": "template.schema.json#/properties/validations"
+    },
+    "legs": {
+      "$ref": "template.schema.json#/properties/legs"
+    },
+    "metadata_schema": {
+      "$ref": "template.schema.json#/properties/metadata_schema"
+    },
+    "examples": {
+      "$ref": "template.schema.json#/properties/examples"
+    }
+  },
+  "additionalProperties": false
+}

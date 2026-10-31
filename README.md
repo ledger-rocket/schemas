@@ -8,9 +8,12 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 | --- | --- | --- |
 | `domain/event.schema.json` | Financial event requests submitted to the Event Service | https://ledger-rocket.github.io/schemas/domain/event.schema.json |
 | `domain/template.schema.json` | Ledger templates that transform events into transfers | https://ledger-rocket.github.io/schemas/domain/template.schema.json |
+| `domain/template.put.schema.json` | Body of the accounting-rule-engine template PUT: the template without `site_id` and `template_id` | https://ledger-rocket.github.io/schemas/domain/template.put.schema.json |
 | `domain/workflow.schema.json` | Workflow definitions that chain template executions | https://ledger-rocket.github.io/schemas/domain/workflow.schema.json |
 | `domain/expected-transfer.schema.json` | Expected transfer output for template validation/testing | https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json |
 | `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
+
+Recent template change: `domain/template.put.schema.json` (frozen copy `domain/v1.0.0/template.put.schema.json`) is new. It describes the body of accounting-rule-engine's `PUT /api/v1/sites/{site_id}/templates/{template_id}`: every property of the domain template except `site_id` and `template_id`, each a `$ref` to the domain property, with the same `required` list less the two ids and `additionalProperties: false`. Since v7.0.0 accounting-rule-engine takes both ids from the path, writes them into the stored template and refuses a body that carries either; it publishes the same body as `TemplatePutRequest`. `domain/template.schema.json` is unchanged and keeps both ids, because it describes the stored template that a GET returns. A PUT body names the PUT schema in `$schema`; the service stores the template with the domain schema URL in its place. `.github/scripts/check_put_schema.py` fails CI when the two schemas drift apart. Nothing existing changes, so the published version stays at **v1.0.0**.
 
 Recent event change: each `accounts` entry now carries `account_id` XOR `external_account_id` (exactly one; `purpose` stays required). `external_account_id` is the customer-supplied external account id, resolved to a Ledger Service account for the site. This matches the contract both Event Service engines already enforce (supplying both or neither is a 422) and relaxes the schema, so existing instances stay valid and the published version stays at **v1.0.0**.
 
@@ -39,6 +42,7 @@ Each schema exposes a top-level `"version"` field. When a breaking change is rel
 common/v1.0.0/defs.schema.json
 domain/v1.0.0/event.schema.json
 domain/v1.0.0/template.schema.json
+domain/v1.0.0/template.put.schema.json
 domain/v1.0.0/workflow.schema.json
 domain/v1.0.0/expected-transfer.schema.json
 ```

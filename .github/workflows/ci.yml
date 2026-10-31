@@ -31,6 +31,8 @@ jobs:
           check-jsonschema --check-metaschema "${files[@]}"
       - name: Resolve cross-file $refs against working-tree copies
         run: python .github/scripts/check_refs.py
+      - name: Check the template PUT schema is the domain template minus its path ids
+        run: python .github/scripts/check_put_schema.py
 
   lint-yaml:
     name: Lint workflow YAML
