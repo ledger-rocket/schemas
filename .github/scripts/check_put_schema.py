@@ -6,9 +6,13 @@ template schema minus the identity the request path names.
 ``PUT /api/v1/sites/{site_id}/templates/{template_id}``: every property of the
 ``template.schema.json`` beside it except ``site_id`` and ``template_id``, each
 one a bare ``$ref`` to that property (``$schema`` excepted: it names the PUT
-schema itself), the same ``required`` list without the two ids, and
+schema itself), the same ``required`` set without the two ids, and
 ``additionalProperties: false``. Each PUT file is compared with the template in
-its own directory, because that is the file its published ``$ref``s resolve to.
+its own directory. Its published ``$ref``s resolve by ``$id``, which a latest
+template shares with its frozen copy, so the template files that share an
+``$id`` must be identical. A template keyword outside the ones a PUT mirrors
+(``allOf``, ``if``, ``dependentRequired`` ...) fails the check, because the PUT
+would not carry it.
 
 Every PUT file then validates the domain schema's own examples: an example
 with its ``$schema`` set to a PUT URL and without the ids passes, and the same
@@ -38,6 +42,8 @@ PUT_URLS = [
 ]
 TOP_LEVEL = {"$schema", "$id", "title", "description", "type", "version", "required", "properties", "additionalProperties"}
 ANNOTATIONS = {"description", "examples", "$comment", "title"}
+# Top-level keywords of the domain template that the PUT schema mirrors or that only annotate.
+DOMAIN_TOP_LEVEL = TOP_LEVEL | {"examples"}
 
 
 def load(path: Path) -> dict:
@@ -56,6 +62,10 @@ def registry() -> Registry:
 
 def shape_errors(path: Path, put: dict, domain: dict) -> list[str]:
     errors = []
+    if set(domain) - DOMAIN_TOP_LEVEL:
+        errors.append(f"{path}: the domain template has keywords {sorted(set(domain) - DOMAIN_TOP_LEVEL)} that a PUT schema does not mirror")
+    if domain.get("type") != "object" or domain.get("additionalProperties") is not False:
+        errors.append(f"{path}: the domain template is no longer a closed object")
     if set(put) - TOP_LEVEL:
         errors.append(f"{path}: unexpected top-level keywords {sorted(set(put) - TOP_LEVEL)}")
     if put.get("type") != "object":
@@ -64,13 +74,18 @@ def shape_errors(path: Path, put: dict, domain: dict) -> list[str]:
         errors.append(f"{path}: additionalProperties must be false")
     if put.get("version") != domain.get("version"):
         errors.append(f"{path}: version {put.get('version')} != domain {domain.get('version')}")
-    want_props = [k for k in domain["properties"] if k not in PATH_IDS]
-    if list(put.get("properties", {})) != want_props:
-        errors.append(f"{path}: properties {list(put.get('properties', {}))} != domain minus ids {want_props}")
-    want_required = [k for k in domain["required"] if k not in PATH_IDS]
-    if put.get("required") != want_required:
-        errors.append(f"{path}: required {put.get('required')} != domain minus ids {want_required}")
+    want_props = set(domain["properties"]) - set(PATH_IDS)
+    have_props = set(put.get("properties", {}))
+    if have_props != want_props:
+        errors.append(f"{path}: properties differ from the domain minus ids: extra {sorted(have_props - want_props)}, missing {sorted(want_props - have_props)}")
+    want_required = set(domain["required"]) - set(PATH_IDS)
+    have_required = set(put.get("required", []))
+    if have_required != want_required or len(put.get("required", [])) != len(have_required):
+        errors.append(f"{path}: required differs from the domain minus ids: extra {sorted(have_required - want_required)}, missing {sorted(want_required - have_required)}")
     for name, sub in put.get("properties", {}).items():
+        if not isinstance(sub, dict):
+            errors.append(f"{path}: properties.{name} must be an object, not {sub!r}")
+            continue
         if name == "$schema":
             if sub.get("type") != "string" or sub.get("enum") != PUT_URLS or set(sub) - ANNOTATIONS - {"type", "enum"}:
                 errors.append(f"{path}: properties.$schema must be a string enum of exactly {PUT_URLS}")
@@ -94,12 +109,25 @@ def self_test(put: dict, domain: dict) -> list[str]:
         "additionalProperties open": lambda s: s.update(additionalProperties=True),
         "a version drift": lambda s: s.update(version="9.9.9"),
         "a looser $schema": lambda s: s["properties"].update({"$schema": {"$ref": "template.schema.json#/properties/$schema"}}),
+        "an extra $schema URL": lambda s: s["properties"]["$schema"]["enum"].append("https://ledger-rocket.github.io/schemas/domain/template.schema.json"),
+        "a constraint beside the $schema enum": lambda s: s["properties"]["$schema"].update(maxLength=10),
+        "a type other than object": lambda s: s.update(type="array"),
+        "a boolean property": lambda s: s["properties"].update(name=True),
+    }
+    domain_mutations = {
+        "a domain allOf": lambda d: d.update(allOf=[{"required": ["name"]}]),
+        "a domain dependentRequired": lambda d: d.update(dependentRequired={"name": ["product"]}),
     }
     errors = []
     for label, mutate in mutations.items():
         mutated = copy.deepcopy(put)
         mutate(mutated)
         if not shape_errors(Path("<self-test>"), mutated, domain):
+            errors.append(f"self-test: the shape check accepts {label}")
+    for label, mutate in domain_mutations.items():
+        mutated = copy.deepcopy(domain)
+        mutate(mutated)
+        if not shape_errors(Path("<self-test>"), put, mutated):
             errors.append(f"self-test: the shape check accepts {label}")
     return errors
 
@@ -112,23 +140,24 @@ def main() -> int:
 
     errors: list[str] = []
     # A published PUT schema's $refs resolve by $id, which a latest template and
-    # its frozen copy share, so those copies must agree on what a PUT reuses.
+    # its frozen copy share, so those copies must be identical.
     by_id: dict[str, list[Path]] = {}
     for path in put_files:
         domain_path = path.with_name("template.schema.json")
         by_id.setdefault(load(domain_path)["$id"], []).append(domain_path)
     for uri, group in by_id.items():
-        shapes = {json.dumps([load(p)["properties"], load(p)["required"]], sort_keys=True) for p in group}
-        if len(shapes) > 1:
-            errors.append(f"{[p.as_posix() for p in group]} share $id {uri} but differ in properties or required")
+        if len({json.dumps(load(p), sort_keys=True) for p in group}) > 1:
+            errors.append(f"{[p.as_posix() for p in group]} share $id {uri} but are not identical")
 
     reg = registry()
     checked = 0
     for path in put_files:
         domain_path = path.with_name("template.schema.json")
         domain, put = load(domain_path), load(path)
-        errors.extend(self_test(put, domain))
-        errors.extend(shape_errors(path, put, domain))
+        shape = shape_errors(path, put, domain)
+        errors.extend(shape)
+        if not shape:  # the self-test mutates a well-formed PUT schema
+            errors.extend(self_test(put, domain))
 
         domain_validator = Draft202012Validator(domain, registry=reg)
         put_validator = Draft202012Validator(put, registry=reg)
