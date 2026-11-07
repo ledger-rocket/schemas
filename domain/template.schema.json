@@ -553,7 +553,8 @@
           },
           "event_request": {
             "$ref": "../event.schema.json#/$defs/eventWithOptionalWorkflow",
-            "description": "Sample event request for testing. It references the event fields with workflow_id and step_code optional, so a stored template whose examples lack them stays valid. The rule that authored examples carry both fields belongs to the Accounting Rule Engine."
+            "description": "Sample event request for testing. It references the event fields with workflow_id and step_code optional, so a stored template whose examples lack them stays valid. The rule that authored examples carry both fields belongs to the Accounting Rule Engine.",
+            "$comment": "This copy resolves only beside event schema 2.0.0 or later under the event $id, because the definition starts at 2.0.0. A local definition with refs to ../event.schema.json#/properties/<name> and #/allOf/0 would not resolve beside the frozen v1.0.0 event copy either: that copy has no allOf, and without the allOf ref template examples would lose the zero_amount rule."
           },
           "expected_transfers": {
             "type": "array",
