@@ -76,12 +76,20 @@ def validator(doc: dict, base: Registry, ptr: str = "") -> Draft202012Validator:
 def check_event(path: str, doc: dict, base: Registry) -> list[str]:
     errors = []
     optional = doc.get("$defs", {}).get(OPTIONAL_DEF)
+    # The def must be the root with only the two workflow fields optional.
+    mirror = {
+        "type": doc.get("type"),
+        "required": [name for name in doc.get("required", []) if name not in WORKFLOW_FIELDS],
+        "properties": {name: {"$ref": f"#/properties/{name}"} for name in doc.get("properties", {})},
+        "additionalProperties": doc.get("additionalProperties"),
+        "allOf": [{"$ref": f"#/allOf/{index}"} for index in range(len(doc.get("allOf", [])))],
+    }
+    if not set(WORKFLOW_FIELDS) <= set(doc.get("required", [])):
+        errors.append(f"{path}: root required must hold {list(WORKFLOW_FIELDS)}")
     if optional is None:
         errors.append(f"{path}: has no $defs/{OPTIONAL_DEF} for template examples")
-    elif set(doc.get("required", [])) != set(optional["required"]) | set(WORKFLOW_FIELDS):
-        errors.append(
-            f"{path}: root required must be $defs/{OPTIONAL_DEF} required plus {list(WORKFLOW_FIELDS)}"
-        )
+    elif {key: value for key, value in optional.items() if key != "$comment"} != mirror:
+        errors.append(f"{path}: $defs/{OPTIONAL_DEF} must be {mirror}")
     examples = doc.get("examples", [])
     if not examples:
         errors.append(f"{path}: no root example to test the workflow rule with")
@@ -100,13 +108,20 @@ def check_event(path: str, doc: dict, base: Registry) -> list[str]:
 def check_template(path: str, doc: dict, base: Registry) -> list[str]:
     stripped = copy.deepcopy(doc["examples"])
     tested = 0
-    for template in stripped:
-        for example in template["examples"]:
+    errors = []
+    for index, template in enumerate(stripped):
+        for number, example in enumerate(template["examples"]):
             request = example["event_request"]
-            tested += all(field in request for field in WORKFLOW_FIELDS)
+            tested += 1
+            if not all(field in request for field in WORKFLOW_FIELDS):
+                errors.append(
+                    f"{path}#/examples/{index}/examples/{number}/event_request: "
+                    f"an authored example carries {list(WORKFLOW_FIELDS)}"
+                )
             for field in WORKFLOW_FIELDS:
                 request.pop(field, None)
-    errors = [] if tested else [f"{path}: no event_request example carries both workflow fields"]
+    if not tested:
+        errors.append(f"{path}: no event_request example to test the stored-template rule with")
     root = validator(doc, base)
     for index, template in enumerate(stripped):
         for e in root.iter_errors(template):

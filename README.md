@@ -13,16 +13,19 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 | `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
 
 Breaking event change, event schema **v2.0.0**: `workflow_id` and `step_code` are required on every event.
-`workflow_id` is the Accounting Rule Engine workflow definition id on the event's site (the workflow's `workflow_id`, a UUIDv7), not an execution id.
-`step_code` is the `id` of a step of that workflow, in lowercase snake_case, at most 100 characters.
+`workflow_id` is the Accounting Rule Engine workflow definition id on the event's site (the workflow's `workflow_id`), not an execution id.
+`step_code` is the `id` of a step of that workflow, in lowercase snake_case.
+The types of both fields do not change.
 `$schema` accepts the new frozen URL `https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json` beside the latest URL and the frozen v1.0.0 URL; `$schema` names a published schema and does not select the schema that validates the event.
-The event fields now live in `$defs/eventWithOptionalWorkflow`, where both fields stay optional, and the root schema references it and lists all 9 required fields.
-Readers that read the root `properties` must follow the root `$ref`.
+The root keeps its shape, and only its `required` list grows.
+`$defs/eventWithOptionalWorkflow` is the same event with both fields optional: each of its properties and its `allOf` rule refer to the root's.
 `domain/v1.0.0/event.schema.json` is unchanged, and `domain/v2.0.0/event.schema.json` is the new frozen copy.
 
 Template example rule: `examples[].event_request` in both template schema copies references `event.schema.json#/$defs/eventWithOptionalWorkflow`, so a stored template whose examples lack `workflow_id` and `step_code` stays valid.
 The rule that authored template examples carry both fields belongs to the Accounting Rule Engine, not to the template schema.
-The template schema stays at **v1.0.0**: it now refuses only an example whose `workflow_id` is not a UUIDv7 or whose `step_code` is longer than 100 characters. A stored example without both fields stays valid. The frozen `domain/v1.0.0/template.schema.json` copy carries the same change.
+The template schema stays at **v1.0.0**, because it accepts every template that it accepted before, and the frozen `domain/v1.0.0/template.schema.json` copy carries the same change.
+Because the definition exists from event schema 2.0.0, the v1.0.0 template copy resolves only beside event schema 2.0.0 or later under the event `$id`; it does not resolve beside the frozen v1.0.0 event copy.
+The validation examples below pair it with `domain/v2.0.0/event.schema.json`.
 CI runs `.github/scripts/check_examples.py`, which validates every embedded example against the schema node that holds it and checks the workflow rule in both directions.
 
 Recent event change: each `accounts` entry now carries `account_id` XOR `external_account_id` (exactly one; `purpose` stays required). `external_account_id` is the customer-supplied external account id, resolved to a Ledger Service account for the site. This matches the contract both Event Service engines already enforce (supplying both or neither is a 422) and relaxes the schema, so existing instances stay valid and the published version stays at **v1.0.0**.
@@ -83,7 +86,7 @@ from jsonschema import Draft202012Validator, RefResolver
 BASE = "https://ledger-rocket.github.io/schemas/domain/"
 SCHEMAS = {
     "template": json.load(urlopen(f"{BASE}v1.0.0/template.schema.json")),
-    "event": json.load(urlopen(f"{BASE}v1.0.0/event.schema.json")),
+    "event": json.load(urlopen(f"{BASE}v2.0.0/event.schema.json")),
     "expected": json.load(urlopen(f"{BASE}v1.0.0/expected-transfer.schema.json")),
 }
 refs = {SCHEMAS[name]["$id"]: doc for name, doc in SCHEMAS.items()}
@@ -162,7 +165,7 @@ import addFormats from "ajv-formats";
 const BASE = "https://ledger-rocket.github.io/schemas/";
 const [defs, eventSchema, expectedSchema, templateSchema] = await Promise.all([
   fetch(`${BASE}common/v1.0.0/defs.schema.json`).then((res) => res.json()),
-  fetch(`${BASE}domain/v1.0.0/event.schema.json`).then((res) => res.json()),
+  fetch(`${BASE}domain/v2.0.0/event.schema.json`).then((res) => res.json()),
   fetch(`${BASE}domain/v1.0.0/expected-transfer.schema.json`).then((res) => res.json()),
   fetch(`${BASE}domain/v1.0.0/template.schema.json`).then((res) => res.json()),
 ]);
