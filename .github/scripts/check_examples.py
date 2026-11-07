@@ -6,8 +6,10 @@
    frozen copy is checked as itself and not as its latest sibling.
 2. Each event root example fails with exactly one ``required`` error when
    ``workflow_id`` or ``step_code`` is removed (event schema 2.0.0).
-3. Each template example still validates when both fields are removed from
-   every ``event_request``: stored templates keep both fields optional.
+3. Each template example carries both fields, and still validates when both
+   are removed from every ``event_request``: stored templates keep both fields
+   optional. Each template copy is checked beside every event copy from 2.0.0
+   on, the pairing that README.md states.
 
 Frozen copies that predate this check and stay unchanged are exempt by name.
 """
@@ -22,6 +24,7 @@ sys.dont_write_bytecode = True  # the import below must not write __pycache__ in
 import check_refs  # noqa: E402
 from jsonschema import Draft202012Validator  # noqa: E402
 from referencing import Registry, Resource  # noqa: E402
+from referencing.exceptions import Unresolvable  # noqa: E402
 from referencing.jsonschema import DRAFT202012  # noqa: E402
 
 EXEMPT = {
@@ -105,7 +108,7 @@ def check_event(path: str, doc: dict, base: Registry) -> list[str]:
     return errors
 
 
-def check_template(path: str, doc: dict, base: Registry) -> list[str]:
+def check_template(path: str, doc: dict, base: Registry, events: list[tuple[str, dict]]) -> list[str]:
     stripped = copy.deepcopy(doc["examples"])
     tested = 0
     errors = []
@@ -122,13 +125,27 @@ def check_template(path: str, doc: dict, base: Registry) -> list[str]:
                 request.pop(field, None)
     if not tested:
         errors.append(f"{path}: no event_request example to test the stored-template rule with")
-    root = validator(doc, base)
-    for index, template in enumerate(stripped):
-        for e in root.iter_errors(template):
-            errors.append(
-                f"{path}#/examples/{index} without the workflow fields: {e.message} at {e.json_path}"
-            )
-    print(f"{path}: {tested} event_request example(s) tested without the workflow fields")
+    if not events:
+        errors.append(f"{path}: no event schema copy of 2.0.0 or later to pair the template with")
+    # README pairing rule: every template copy resolves beside every event copy from 2.0.0 on.
+    # The frozen v1.0.0 event copy has no $defs/eventWithOptionalWorkflow, so it is not a pair.
+    for event_path, event_doc in events:
+        paired = base.with_resource(
+            uri=event_doc["$id"],
+            resource=Resource.from_contents(event_doc, default_specification=DRAFT202012),
+        )
+        root = validator(doc, paired)
+        for label, templates in (("as authored", doc["examples"]), ("without the workflow fields", stripped)):
+            for index, template in enumerate(templates):
+                try:
+                    found = [f"{e.message} at {e.json_path}" for e in root.iter_errors(template)]
+                except Unresolvable as unresolved:
+                    found = [f"unresolvable reference: {unresolved}"]
+                errors += [f"{path}#/examples/{index} {label} beside {event_path}: {line}" for line in found]
+    print(
+        f"{path}: {tested} event_request example(s) tested without the workflow fields, "
+        f"beside {', '.join(event_path for event_path, _ in events)}"
+    )
     return errors
 
 
@@ -138,6 +155,11 @@ def main() -> int:
         print("error: no *.schema.json files found", file=sys.stderr)
         return 1
     base = check_refs.build_registry(docs)
+    events = [
+        (path, doc)
+        for path, doc in docs.items()
+        if check_refs.logical_path(path) == EVENT and path not in EXEMPT
+    ]
     errors: list[str] = []
     for path, doc in docs.items():
         if path in EXEMPT:
@@ -155,7 +177,7 @@ def main() -> int:
         if logical == EVENT:
             errors += check_event(path, doc, base)
         elif logical == TEMPLATE:
-            errors += check_template(path, doc, base)
+            errors += check_template(path, doc, base, events)
 
     for line in errors:
         print(f"error: {line}", file=sys.stderr)
