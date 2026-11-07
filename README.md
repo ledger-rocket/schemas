@@ -12,6 +12,19 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 | `domain/expected-transfer.schema.json` | Expected transfer output for template validation/testing | https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json |
 | `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
 
+Breaking event change, event schema **v2.0.0**: `workflow_id` and `step_code` are required on every event.
+`workflow_id` is the Accounting Rule Engine workflow definition id on the event's site (the workflow's `workflow_id`, a UUIDv7), not an execution id.
+`step_code` is the `id` of a step of that workflow, in lowercase snake_case, at most 100 characters.
+`$schema` accepts the new frozen URL `https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json` beside the latest URL and the frozen v1.0.0 URL; `$schema` names a published schema and does not select the schema that validates the event.
+The event fields now live in `$defs/eventWithOptionalWorkflow`, where both fields stay optional, and the root schema references it and lists all 9 required fields.
+Readers that read the root `properties` must follow the root `$ref`.
+`domain/v1.0.0/event.schema.json` is unchanged, and `domain/v2.0.0/event.schema.json` is the new frozen copy.
+
+Template example rule: `examples[].event_request` in both template schema copies references `event.schema.json#/$defs/eventWithOptionalWorkflow`, so a stored template whose examples lack `workflow_id` and `step_code` stays valid.
+The rule that authored template examples carry both fields belongs to the Accounting Rule Engine, not to the template schema.
+The template schema stays at **v1.0.0**: it now refuses only an example whose `workflow_id` is not a UUIDv7 or whose `step_code` is longer than 100 characters. A stored example without both fields stays valid. The frozen `domain/v1.0.0/template.schema.json` copy carries the same change.
+CI runs `.github/scripts/check_examples.py`, which validates every embedded example against the schema node that holds it and checks the workflow rule in both directions.
+
 Recent event change: each `accounts` entry now carries `account_id` XOR `external_account_id` (exactly one; `purpose` stays required). `external_account_id` is the customer-supplied external account id, resolved to a Ledger Service account for the site. This matches the contract both Event Service engines already enforce (supplying both or neither is a 422) and relaxes the schema, so existing instances stay valid and the published version stays at **v1.0.0**.
 
 Recent event change: `$schema` is now an enum of the two published event schema URLs, `https://ledger-rocket.github.io/schemas/domain/event.schema.json` and `https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json`, in place of the pattern `^https://ledger-rocket\.github\.io/schemas/.*$`. The pattern admitted any URL under the site, so `https://ledger-rocket.github.io/schemas/event/1.0.0`, which returns 404, passed validation. Event Service validates an event against this schema on `POST /api/v1/events:validate` and `POST /api/v1/events:validate:explain` only; the commit path `POST /api/v1/events` does not validate against it. accounting-rule-engine validates each template example's `event_request` against it through the template schema when a template is saved or validated. A value that these paths validate now names a schema that exists. This tightens validation only for `$schema` values outside the two published URLs, and the dashboard stops writing the dead value before this change merges, so the published version stays at **v1.0.0** and the frozen `domain/v1.0.0/` copy carries the same change.
@@ -33,9 +46,10 @@ Recent workflow change: workflow schema **v1.0.0** requires top-level `accountin
 
 Recent change: template scopes now accept any lower snake case identifier defined by the template (beyond the legacy `primary` / `secondary` values), and the shared treatment-type enum documents the full adapter-supported set. These tighten validation but remain compatible with existing schema consumers, so the published version stays at **v1.0.0**.
 
-Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current published version is **v1.0.0**:
+Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current published versions are **v2.0.0** for the event schema and **v1.0.0** for the other schemas:
 
-```
+```text
+domain/v2.0.0/event.schema.json
 common/v1.0.0/defs.schema.json
 domain/v1.0.0/event.schema.json
 domain/v1.0.0/template.schema.json

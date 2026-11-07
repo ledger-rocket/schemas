@@ -61,12 +61,29 @@ def discover() -> list[str]:
     )
 
 
-def main() -> int:
+def load_docs() -> dict[str, dict]:
     docs: dict[str, dict] = {}
     for path in discover():
         with open(path, encoding="utf-8") as handle:
             docs[path] = json.load(handle)
+    return docs
 
+
+def build_registry(docs: dict[str, dict]) -> Registry:
+    """Register every document by its ``$id``. Frozen copies register first so
+    the latest sibling wins each ``$id`` collision."""
+    registry = Registry()
+    for path in sorted(docs, key=lambda p: (0 if is_frozen_copy(p) else 1, p)):
+        doc = docs[path]
+        registry = registry.with_resource(
+            uri=doc["$id"],
+            resource=Resource.from_contents(doc, default_specification=DRAFT202012),
+        )
+    return registry
+
+
+def main() -> int:
+    docs = load_docs()
     if not docs:
         print("error: no *.schema.json files found", file=sys.stderr)
         return 1
@@ -103,14 +120,7 @@ def main() -> int:
             print(f"error: {line}", file=sys.stderr)
         return 1
 
-    # Frozen copies register first so the latest sibling wins each $id collision.
-    registry = Registry()
-    for path in sorted(docs, key=lambda p: (0 if is_frozen_copy(p) else 1, p)):
-        doc = docs[path]
-        registry = registry.with_resource(
-            uri=doc["$id"],
-            resource=Resource.from_contents(doc, default_specification=DRAFT202012),
-        )
+    registry = build_registry(docs)
 
     for path, doc in docs.items():
         resolver = registry.resolver(base_uri=doc["$id"])

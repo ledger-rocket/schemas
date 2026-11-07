@@ -424,7 +424,7 @@
               "transfer_amount",
               "event.amount",
               "accounts.fee.amount_minor",
-              "1000"
+              1000
             ]
           },
           "description": {
@@ -552,8 +552,8 @@
             "description": "Human-readable description of the example scenario"
           },
           "event_request": {
-            "$ref": "../event.schema.json",
-            "description": "Sample event request for testing"
+            "$ref": "../event.schema.json#/$defs/eventWithOptionalWorkflow",
+            "description": "Sample event request for testing. It references the event fields with workflow_id and step_code optional, so a stored template whose examples lack them stays valid. The rule that authored examples carry both fields belongs to the Accounting Rule Engine."
           },
           "expected_transfers": {
             "type": "array",
@@ -926,7 +926,7 @@
           "name": "Standard plan in the app: GBP to EUR",
           "description": "Sells GBP 1,000.00 at 1.1650 for EUR 1,165.00. GBP 400.00 of allowance is left, so the 0.5% fee applies to GBP 600.00: GBP 3.00, booked as app FX income.",
           "event_request": {
-            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
             "event_id": "01a0f6e8-ff60-7331-81db-33a057ac83d8",
             "site_id": 1,
             "occurred_at": 1790848860000,
@@ -961,7 +961,9 @@
               "fee_free_allowance_remaining": 40000,
               "channel": "APP",
               "quote_id": "QT-2026-10-01-0001"
-            }
+            },
+            "workflow_id": "0192e4d8-7b23-7f89-a123-456789abcd13",
+            "step_code": "accept_exchange_quote"
           },
           "expected_transfers": [
             {
@@ -988,7 +990,7 @@
           "name": "Standard plan in the app: EUR to GBP",
           "description": "Sells EUR 500.00 at 0.8580 for GBP 429.00. No allowance is left, so the 0.5% fee applies to the whole amount: EUR 2.50, booked on the EUR ledger.",
           "event_request": {
-            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
             "event_id": "01a0f6ea-d420-75d1-9fe9-bf4956699de6",
             "site_id": 1,
             "occurred_at": 1790848980000,
@@ -1023,7 +1025,9 @@
               "fee_free_allowance_remaining": 0,
               "channel": "APP",
               "quote_id": "QT-2026-10-01-0003"
-            }
+            },
+            "workflow_id": "0192e4d8-7b23-7f89-a123-456789abcd13",
+            "step_code": "accept_exchange_quote"
           },
           "expected_transfers": [
             {
@@ -1050,7 +1054,7 @@
           "name": "Plus plan in a partner app: GBP 12,000 to EUR",
           "description": "Sells GBP 12,000.00 at 1.1650 for EUR 13,980.00. The 0.35% rate applies from 5,000.00. GBP 1,000.00 of allowance is left, so the fee is GBP 38.50, booked as partner-app FX income.",
           "event_request": {
-            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
             "event_id": "01a0f6eb-be80-70a4-948f-7fbfe3ffefad",
             "site_id": 1,
             "occurred_at": 1790849040000,
@@ -1085,7 +1089,9 @@
               "fee_free_allowance_remaining": 100000,
               "channel": "PARTNER_API",
               "quote_id": "QT-2026-10-01-0004"
-            }
+            },
+            "workflow_id": "0192e4d8-7b23-7f89-a123-456789abcd13",
+            "step_code": "accept_exchange_quote"
           },
           "expected_transfers": [
             {
@@ -1112,7 +1118,7 @@
           "name": "Standard plan in a partner app: EUR 30,000 to GBP",
           "description": "Sells EUR 30,000.00 at 0.8580 for GBP 25,740.00. The 0.25% rate applies from 25,000.00, so the fee is EUR 75.00, booked as partner-app FX income on the EUR ledger.",
           "event_request": {
-            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
             "event_id": "01a0f6ec-a8e0-73b7-a962-494a5a3c88a9",
             "site_id": 1,
             "occurred_at": 1790849100000,
@@ -1147,7 +1153,9 @@
               "fee_free_allowance_remaining": 0,
               "channel": "PARTNER_API",
               "quote_id": "QT-2026-10-01-0005"
-            }
+            },
+            "workflow_id": "0192e4d8-7b23-7f89-a123-456789abcd13",
+            "step_code": "accept_exchange_quote"
           },
           "expected_transfers": [
             {
@@ -1174,7 +1182,7 @@
           "name": "Premium plan, no fee: GBP to EUR",
           "description": "Sells GBP 2,500.00 at 1.1650 for EUR 2,912.50. Premium pays no fair-usage fee, so no fee leg runs.",
           "event_request": {
-            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
             "event_id": "01a0f6e9-e9c0-7d8b-b363-49f358ed970f",
             "site_id": 1,
             "occurred_at": 1790848920000,
@@ -1209,7 +1217,9 @@
               "fee_free_allowance_remaining": 0,
               "channel": "APP",
               "quote_id": "QT-2026-10-01-0002"
-            }
+            },
+            "workflow_id": "0192e4d8-7b23-7f89-a123-456789abcd13",
+            "step_code": "accept_exchange_quote"
           },
           "expected_transfers": [
             {
@@ -1230,7 +1240,7 @@
           "name": "Standard plan with a waived fee: GBP to EUR",
           "description": "Sells GBP 800.00 at 1.1650 for EUR 932.00. The fee would be GBP 4.00, but the event carries a promotion waiver, so no fee leg runs.",
           "event_request": {
-            "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+            "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
             "event_id": "01a0f6ed-9340-7a3f-96d1-88605cc895f7",
             "site_id": 1,
             "occurred_at": 1790849160000,
@@ -1266,7 +1276,9 @@
               "channel": "APP",
               "quote_id": "QT-2026-10-01-0006",
               "fee_waiver_reason": "PROMOTION"
-            }
+            },
+            "workflow_id": "0192e4d8-7b23-7f89-a123-456789abcd13",
+            "step_code": "accept_exchange_quote"
           },
           "expected_transfers": [
             {
