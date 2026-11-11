@@ -10,7 +10,10 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 | `domain/template.schema.json` | Ledger templates that transform events into transfers | https://ledger-rocket.github.io/schemas/domain/template.schema.json |
 | `domain/workflow.schema.json` | Workflow definitions that chain template executions | https://ledger-rocket.github.io/schemas/domain/workflow.schema.json |
 | `domain/expected-transfer.schema.json` | Expected transfer output for template validation/testing | https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json |
-| `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
+| `common/v2.0.0/defs.schema.json` | Shared `$defs` referenced by the v2.0.0 domain schemas | https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json |
+| `common/defs.schema.json` | Shared `$defs` of v1.0.0, referenced by the `domain/v1.0.0/` copies and `domain/audit-slug.schema.json` | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
+
+Breaking change, **v2.0.0** (PRO-16748): the event, template, workflow and expected-transfer schemas take the AEP names. Event: `amount` becomes `amount_minor`, a decimal integer string in `0..9007199254740991`; `occurred_at` becomes `occur_time`, an RFC 3339 date-time; `is_reversal` becomes `reversal`; `site_id` and `template_ids` become decimal integer strings; `directives` values become UPPER_SNAKE; `$schema` names the latest URL or the frozen v2.0.0 copy. Template: `name` becomes `display_name` on the template and on each example; `site_id` and `template_id` become decimal integer strings; `capabilities`, variable `type`, `metadata_schema.type`, treatment types and financial impacts become UPPER_SNAKE; `examples[].event_request` references the v2.0.0 event schema; expected-transfer `amount` becomes `amount_minor`, a decimal integer string greater than zero. Workflow: `name` becomes `display_name`; `site_id` and `steps[].template_id` become decimal integer strings. Identifier keys such as `variables[].name` and `validations[].name` keep their names. The v2.0.0 schemas reference `common/v2.0.0/defs.schema.json` by its versioned URL, and `common/defs.schema.json` keeps its v1.0.0 content, because the frozen `domain/v1.0.0/` copies and `domain/audit-slug.schema.json` resolve their `$ref`s through that unversioned URL.
 
 Recent event change: each `accounts` entry now carries `account_id` XOR `external_account_id` (exactly one; `purpose` stays required). `external_account_id` is the customer-supplied external account id, resolved to a Ledger Service account for the site. This matches the contract both Event Service engines already enforce (supplying both or neither is a 422) and relaxes the schema, so existing instances stay valid and the published version stays at **v1.0.0**.
 
@@ -33,7 +36,17 @@ Recent workflow change: workflow schema **v1.0.0** requires top-level `accountin
 
 Recent change: template scopes now accept any lower snake case identifier defined by the template (beyond the legacy `primary` / `secondary` values), and the shared treatment-type enum documents the full adapter-supported set. These tighten validation but remain compatible with existing schema consumers, so the published version stays at **v1.0.0**.
 
-Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current published version is **v1.0.0**:
+Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current published version is **v2.0.0**:
+
+```
+common/v2.0.0/defs.schema.json
+domain/v2.0.0/event.schema.json
+domain/v2.0.0/template.schema.json
+domain/v2.0.0/workflow.schema.json
+domain/v2.0.0/expected-transfer.schema.json
+```
+
+The frozen **v1.0.0** copies stay published:
 
 ```
 common/v1.0.0/defs.schema.json

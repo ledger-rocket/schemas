@@ -7,7 +7,7 @@
   "required": [
     "debit_account_id",
     "credit_account_id",
-    "amount",
+    "amount_minor",
     "leg_number"
   ],
   "properties": {
@@ -26,7 +26,7 @@
       "description": "Account code"
     },
     "debit_account_type": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/accountType"
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/accountType"
     },
     "credit_account_id": {
       "type": "string",
@@ -43,12 +43,12 @@
       "description": "Account code"
     },
     "credit_account_type": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/accountType"
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/accountType"
     },
-    "amount": {
-      "type": "integer",
-      "minimum": 1,
-      "description": "Transfer amount in minor units"
+    "amount_minor": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$",
+      "description": "Transfer amount in minor units of the unit of account, as a decimal integer string greater than zero"
     },
     "leg_number": {
       "type": "integer",
@@ -73,7 +73,7 @@
       "credit_account_name": "Merchant Settlement",
       "credit_account_code": "2200",
       "credit_account_type": "ASSET",
-      "amount": 5000,
+      "amount_minor": "5000",
       "leg_number": 1,
       "is_rollup": false
     },
@@ -86,10 +86,10 @@
       "credit_account_name": "Fee Income",
       "credit_account_code": "4000",
       "credit_account_type": "REVENUE",
-      "amount": 25,
+      "amount_minor": "25",
       "leg_number": 2,
       "is_rollup": false
     }
   ],
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

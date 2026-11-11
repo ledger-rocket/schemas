@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/workflow.schema.json",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/workflow.schema.json",
   "title": "Workflow Definition",
   "description": "Multi-step business process defined as a chain of template executions with data flowing between steps via expressions",
   "type": "object",
@@ -9,7 +9,7 @@
     "workflow_id",
     "code",
     "site_id",
-    "name",
+    "display_name",
     "description",
     "accounting_treatment",
     "category",
@@ -21,11 +21,11 @@
       "pattern": "^https://ledger-rocket\\.github\\.io/schemas/.*$",
       "description": "Canonical path to the JSON schema that defines this workflow payload",
       "examples": [
-        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/workflow.schema.json"
+        "https://ledger-rocket.github.io/schemas/domain/v2.0.0/workflow.schema.json"
       ]
     },
     "workflow_id": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuidV7",
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/uuidV7",
       "description": "Server-generated UUIDv7 identifier"
     },
     "code": {
@@ -41,23 +41,23 @@
       ]
     },
     "site_id": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/siteId"
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/siteId"
     },
-    "name": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/shortString",
-      "description": "Human-readable name",
+    "display_name": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/shortString",
+      "description": "Human-readable display name",
       "examples": [
         "Cross-Border Payment Flow",
         "Loan Disbursement Workflow"
       ]
     },
     "description": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/extraLongString",
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/extraLongString",
       "minLength": 1,
       "description": "Detailed description of the workflow purpose"
     },
     "accounting_treatment": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/extraLongString",
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/extraLongString",
       "minLength": 1,
       "description": "Workflow-level accounting treatment summary. Detailed accounting policies remain on the referenced templates.",
       "examples": [
@@ -65,7 +65,7 @@
       ]
     },
     "category": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/upperSnakeCase",
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/upperSnakeCase",
       "description": "Business category for this workflow",
       "examples": [
         "CASH_MOVEMENT",
@@ -114,13 +114,13 @@
           ]
         },
         "template_id": {
-          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/templateId",
+          "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/templateId",
           "description": "Template to execute for this step"
         },
         "event_sources": {
           "type": "array",
           "items": {
-            "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/eventSource"
+            "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/eventSource"
           },
           "minItems": 1,
           "uniqueItems": true,
@@ -136,7 +136,7 @@
           "description": "Zero-based indices into the referenced template's Examples slice, used by GUI diagram rendering"
         },
         "group": {
-          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/shortString",
+          "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/shortString",
           "description": "Visual stage/group this step belongs to for diagram rendering"
         },
         "depends_on_step_ids": {
@@ -149,15 +149,15 @@
           "description": "Explicit DAG dependencies for this step. Must always be present, even if empty."
         },
         "diagram_label": {
-          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/shortString",
+          "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/shortString",
           "description": "Exact human-readable label to use for Mermaid/UI rendering"
         },
         "description": {
-          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/longString",
+          "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/longString",
           "description": "Optional human-readable description of this step's purpose"
         },
         "trigger": {
-          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/mediumString",
           "description": "Optional trigger override hint for the orchestrator"
         },
         "condition": {
@@ -166,7 +166,7 @@
           "description": "Optional condition expression evaluated by the orchestrator to decide whether this step fires"
         },
         "condition_description": {
-          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/mediumString",
           "description": "Prose description of what condition means. Required when condition is set."
         },
         "repeat_while": {
@@ -175,7 +175,7 @@
           "description": "Optional expression evaluated by the orchestrator to repeat this step"
         },
         "repeat_while_description": {
-          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/mediumString",
           "description": "Prose description of what repeat_while means. Required when repeat_while is set."
         },
         "inputs": {
@@ -189,5 +189,5 @@
       "additionalProperties": false
     }
   },
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

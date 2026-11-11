@@ -552,13 +552,13 @@
             "description": "Human-readable description of the example scenario"
           },
           "event_request": {
-            "$ref": "../event.schema.json",
+            "$ref": "./event.schema.json",
             "description": "Sample event request for testing"
           },
           "expected_transfers": {
             "type": "array",
             "items": {
-              "$ref": "../expected-transfer.schema.json"
+              "$ref": "./expected-transfer.schema.json"
             },
             "description": "Expected transfers that should be generated for validation"
           }

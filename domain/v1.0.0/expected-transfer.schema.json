@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/expected-transfer.schema.json",
   "title": "Expected Transfer",
   "description": "Minimal transfer format for template validation and API responses",
   "type": "object",
