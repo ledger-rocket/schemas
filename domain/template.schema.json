@@ -552,8 +552,8 @@
             "description": "Human-readable description of the example scenario"
           },
           "event_request": {
-            "$ref": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
-            "description": "Sample event request for testing"
+            "$ref": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/stored-event.schema.json",
+            "description": "Sample event for testing, in the stored form the template evaluates (the request with the site_id of its path)"
           },
           "expected_transfers": {
             "type": "array",

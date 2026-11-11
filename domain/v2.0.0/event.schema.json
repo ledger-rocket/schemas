@@ -2,13 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
   "title": "Event Request",
-  "description": "Financial event to be processed into ledger transfers",
+  "description": "Financial event a producer sends to be processed into ledger transfers. The site is the request path, so the body carries no site_id; stored-event.schema.json describes the event as the event service stores it.",
   "type": "object",
   "required": [
     "$schema",
     "event_id",
     "template_ids",
-    "site_id",
     "amount_minor",
     "occur_time",
     "event_source"
@@ -59,9 +58,6 @@
           "145"
         ]
       ]
-    },
-    "site_id": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/siteId"
     },
     "amount_minor": {
       "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/nonNegativeAmount",
@@ -270,7 +266,6 @@
       "template_ids": [
         "132"
       ],
-      "site_id": "1",
       "amount_minor": "5000",
       "occur_time": "2023-11-23T13:30:00.000Z",
       "accounts": [
@@ -302,7 +297,6 @@
         "132",
         "145"
       ],
-      "site_id": "1",
       "amount_minor": "10000",
       "occur_time": "2023-11-23T13:31:40.000Z",
       "accounts": [
