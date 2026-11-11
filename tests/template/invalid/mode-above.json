@@ -3,6 +3,7 @@
   "set": {
     "execution_approval": {
       "mode": "above",
+      "description": "Exchanges wait for a second person before they post.",
       "proposal_ttl": "7d"
     }
   },

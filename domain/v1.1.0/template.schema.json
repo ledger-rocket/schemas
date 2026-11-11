@@ -126,7 +126,7 @@
     },
     "execution_approval": {
       "type": "object",
-      "description": "Whether an event that uses this template needs a person's approval before it posts. `always`: the event waits as a proposal until a person approves it. `never`: the event posts without approval. Absence is not a default: a consumer must not infer a mode from absence.",
+      "description": "Whether an event that uses this template needs a person's approval before it posts. `never`: the event posts without approval. `always`: the event waits as a proposal until a person approves it. `conditional`: the event waits as a proposal when the boolean variable that `condition` names evaluates to true. The writer evaluates the condition at create, and it asks approval when the evaluation fails or does not give a boolean. A template without this block is open: the writer treats it as `never`.",
       "required": [
         "mode"
       ],
@@ -135,45 +135,88 @@
           "type": "string",
           "enum": [
             "never",
-            "always"
+            "always",
+            "conditional"
           ],
           "description": "The approval mode."
         },
+        "condition": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/variableName",
+          "description": "Name of a variable of this template that states `type: \"boolean\"`. The variable's CEL expression decides approval. Required when mode is `conditional`, and refused for the other modes. accounting-rule-engine checks at submit that the variable exists and states the type `boolean`.",
+          "examples": [
+            "needs_second_approver"
+          ]
+        },
+        "description": {
+          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "description": "Why an event waits for approval, in words that the checker reads on the proposal. Required when mode is not `never`.",
+          "examples": [
+            "Payments above 1,000.00 wait for a second person."
+          ]
+        },
         "proposal_ttl": {
           "type": "string",
-          "pattern": "^[1-9][0-9]{0,3}[hd]$",
-          "maxLength": 5,
-          "description": "How long a proposal may wait for approval, counted from its creation. A day is 24 hours. The writer expires a proposal no later than the event's occurred_at plus the writer's age limit for the event's directives, less a margin, whichever comes first.",
+          "pattern": "^(([1-9]|[1-9][0-9]|1[0-5][0-9]|16[0-8])h|[1-7]d)$",
+          "maxLength": 4,
+          "description": "How long a proposal may wait for approval, counted from its creation: 1h to 168h, or 1d to 7d. A day is 24 hours. 168 hours is the writer's maximum proposal lifetime, so a longer value is refused, never shortened. Absent: the writer's configured lifetime, `EVENT_PROPOSALS_EXPIRY` (72h by default). Refused when mode is `never`. When several templates of one event ask approval, the proposal expires after the smallest proposal_ttl that those templates state, else after the writer's configured lifetime. The writer expires a proposal no later than the event's occurred_at plus the writer's age limit for the event's directives, less a margin, whichever comes first.",
           "examples": [
-            "7d",
-            "48h"
+            "72h",
+            "7d"
           ]
         }
       },
       "additionalProperties": false,
-      "if": {
-        "properties": {
-          "mode": {
-            "const": "never"
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "never"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "proposal_ttl"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "description"
+            ]
           }
         },
-        "required": [
-          "mode"
-        ]
-      },
-      "then": {
-        "not": {
-          "required": [
-            "proposal_ttl"
-          ]
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "conditional"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "condition"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "condition"
+              ]
+            }
+          }
         }
-      },
-      "else": {
-        "required": [
-          "proposal_ttl"
-        ]
-      },
-      "$comment": "A mode other than never requires proposal_ttl, so a later gating mode needs no change to this rule."
+      ],
+      "$comment": "Absence means never, so a template without a rule posts as before. A later version may require the block."
     },
     "account_code_validations": {
       "type": "array",
@@ -621,6 +664,10 @@
               "$ref": "../expected-transfer.schema.json"
             },
             "description": "Expected transfers that should be generated for validation"
+          },
+          "expected_approval": {
+            "type": "boolean",
+            "description": "Whether the writer asks approval for this event_request under the template's execution_approval. Required when execution_approval.mode is `conditional`. accounting-rule-engine checks it at submit, as it checks expected_transfers."
           }
         },
         "additionalProperties": false
@@ -631,6 +678,34 @@
     }
   },
   "additionalProperties": false,
+  "if": {
+    "properties": {
+      "execution_approval": {
+        "properties": {
+          "mode": {
+            "const": "conditional"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      }
+    },
+    "required": [
+      "execution_approval"
+    ]
+  },
+  "then": {
+    "properties": {
+      "examples": {
+        "items": {
+          "required": [
+            "expected_approval"
+          ]
+        }
+      }
+    }
+  },
   "examples": [
     {
       "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.1.0/template.schema.json",
@@ -648,6 +723,7 @@
       "execution_class": "payments",
       "execution_approval": {
         "mode": "always",
+        "description": "Exchanges wait for a second person before they post.",
         "proposal_ttl": "7d"
       },
       "account_code_validations": [

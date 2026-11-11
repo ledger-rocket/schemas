@@ -2,7 +2,8 @@
   "base": "approval-always.json",
   "set": {
     "execution_approval": {
-      "mode": "always"
+      "mode": "always",
+      "proposal_ttl": "7d"
     }
   },
   "keyword": "required",
