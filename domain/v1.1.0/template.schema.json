@@ -148,7 +148,14 @@
           ]
         },
         "description": {
-          "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString",
+          "allOf": [
+            {
+              "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/mediumString"
+            },
+            {
+              "pattern": "\\S"
+            }
+          ],
           "description": "Why an event waits for approval, in words that the checker reads on the proposal. Required when mode is not `never`.",
           "examples": [
             "Payments above 1,000.00 wait for a second person."
@@ -681,6 +688,7 @@
   "if": {
     "properties": {
       "execution_approval": {
+        "type": "object",
         "properties": {
           "mode": {
             "const": "conditional"

@@ -1,0 +1,12 @@
+{
+  "base": "approval-always.json",
+  "set": {
+    "execution_approval": {
+      "mode": "always",
+      "description": "   ",
+      "proposal_ttl": "7d"
+    }
+  },
+  "keyword": "pattern",
+  "path": "$.execution_approval.description"
+}
