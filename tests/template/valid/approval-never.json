@@ -8,7 +8,6 @@
   "category": "RETAIL_PAYMENTS",
   "description": "Moves a customer's money between two of their own accounts.",
   "trigger": "Customer moves money between two of their own accounts",
-  "execution_class": "payments",
   "execution_approval": {
     "mode": "never"
   },
