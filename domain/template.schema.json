@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ledger-rocket.github.io/schemas/domain/v1.1.0/template.schema.json",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.schema.json",
   "title": "Template",
   "description": "Template defining business logic for transforming events into ledger transfers",
   "type": "object",
@@ -28,7 +28,7 @@
       "pattern": "^https://ledger-rocket\\.github\\.io/schemas/.*$",
       "description": "Canonical path to the JSON schema that describes this template",
       "examples": [
-        "https://ledger-rocket.github.io/schemas/domain/v1.1.0/template.schema.json"
+        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.schema.json"
       ]
     },
     "template_id": {
@@ -119,7 +119,7 @@
       "type": "string",
       "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
       "maxLength": 48,
-      "description": "Execution class of the template. accounting-rule-engine checks at Approve that the Stytch RBAC policy holds the resource `class-<execution_class>`, which is the one definition of the class. Absent means that the template is not yet classified: a consumer must not infer a class from absence. A later major version of this schema makes the field required.",
+      "description": "Execution class of the template. accounting-rule-engine checks at Approve that the Stytch RBAC policy holds the resource `class-<execution_class>`, which is the one definition of the class. Absent means that the template is not yet classified: a consumer must not infer a class from absence. A later change to this schema may make the field required.",
       "examples": [
         "payments"
       ]
@@ -223,7 +223,7 @@
           }
         }
       ],
-      "$comment": "Absence means never, so a template without a rule posts as before. A later version may require the block."
+      "$comment": "Absence means never, so a template without a rule posts as before. A later change may require the block."
     },
     "account_code_validations": {
       "type": "array",
@@ -716,7 +716,7 @@
   },
   "examples": [
     {
-      "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.1.0/template.schema.json",
+      "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.schema.json",
       "template_id": 7010,
       "site_id": 1,
       "name": "Retail GBP/EUR Exchange",
@@ -1435,5 +1435,5 @@
       ]
     }
   ],
-  "version": "1.1.0"
+  "version": "1.0.0"
 }
