@@ -119,7 +119,7 @@
       "type": "string",
       "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
       "maxLength": 48,
-      "description": "Execution class of the template. accounting-rule-engine checks at Approve that the Stytch RBAC policy holds the resource `class-<execution_class>`, which is the one definition of the class. Absent means that the template is not yet classified: a consumer must not infer a class from absence. A later change to this schema may make the field required.",
+      "description": "Execution class of the template: a label that access-group template clauses name. ledger-service keeps a registry of the classes of each site, which is the one definition of a class. accounting-rule-engine checks at Approve that the class is in the registry of the template's site. The value `unapproved` is reserved for the writer and is never in a registry. Absent means that the template is not yet classified: a consumer must not infer a class from absence. A later change to this schema may make the field required.",
       "examples": [
         "payments"
       ]
