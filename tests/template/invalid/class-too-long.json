@@ -1,0 +1,8 @@
+{
+  "base": "approval-always.json",
+  "set": {
+    "execution_class": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "keyword": "maxLength",
+  "path": "$.execution_class"
+}

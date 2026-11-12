@@ -1,0 +1,41 @@
+{
+  "base": "approval-conditional.json",
+  "set": {
+    "examples": [
+      {
+        "name": "Transfer of 10,000.00",
+        "event_request": {
+          "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+          "event_id": "01a0f6e8-ff60-7331-81db-33a057ac83d8",
+          "site_id": 1,
+          "occurred_at": 1790848860000,
+          "amount": 1000000,
+          "event_source": "payments-service",
+          "template_ids": [
+            7103
+          ],
+          "accounts": [
+            {
+              "purpose": "customer_source_liability",
+              "account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95"
+            },
+            {
+              "purpose": "customer_target_liability",
+              "account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
+            }
+          ]
+        },
+        "expected_transfers": [
+          {
+            "leg_number": 1,
+            "amount": 1000000,
+            "debit_account_id": "0eeb0488-afcf-5f21-84d8-21a35fca9b95",
+            "credit_account_id": "3a49254e-01ee-5b07-aa57-1f942c9a60a5"
+          }
+        ]
+      }
+    ]
+  },
+  "keyword": "required",
+  "path": "$.examples[0]"
+}
