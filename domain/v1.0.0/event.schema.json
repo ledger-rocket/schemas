@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
   "title": "Event Request",
   "description": "Financial event to be processed into ledger transfers",
   "type": "object",

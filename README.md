@@ -6,11 +6,15 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 
 | Path | Description | URL |
 | --- | --- | --- |
-| `domain/event.schema.json` | Financial event requests submitted to the Event Service | https://ledger-rocket.github.io/schemas/domain/event.schema.json |
+| `domain/event.schema.json` | Financial event requests submitted to the Event Service (no `site_id`: the site is the request path) | https://ledger-rocket.github.io/schemas/domain/event.schema.json |
+| `domain/stored-event.schema.json` | An event as the Event Service stores it: the request with the `site_id` of its path | https://ledger-rocket.github.io/schemas/domain/stored-event.schema.json |
 | `domain/template.schema.json` | Ledger templates that transform events into transfers | https://ledger-rocket.github.io/schemas/domain/template.schema.json |
 | `domain/workflow.schema.json` | Workflow definitions that chain template executions | https://ledger-rocket.github.io/schemas/domain/workflow.schema.json |
 | `domain/expected-transfer.schema.json` | Expected transfer output for template validation/testing | https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json |
-| `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
+| `common/v2.0.0/defs.schema.json` | Shared `$defs` referenced by the v2.0.0 domain schemas | https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json |
+| `common/defs.schema.json` | Shared `$defs` of v1.0.0, referenced by the `domain/v1.0.0/` copies and `domain/audit-slug.schema.json` | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
+
+Breaking change, **v2.0.0** (PRO-16748): the event, template, workflow and expected-transfer schemas take the AEP names. Event: `amount` becomes `amount_minor`, a decimal integer string in `0..9007199254740991`; `occurred_at` becomes `occur_time`, an RFC 3339 date-time; `is_reversal` becomes `reversal`; `template_ids` become decimal integer strings; `site_id` leaves the request (the site is the request path) and appears, as a decimal integer string, only in the new stored-event schema, which describes the event as the Event Service stores it; `directives` values become UPPER_SNAKE; `$schema` names the latest URL or the frozen v2.0.0 copy of the request schema. Template: `name` becomes `display_name` on the template and on each example; `site_id` and `template_id` become decimal integer strings; `capabilities`, variable `type`, `metadata_schema.type`, treatment types and financial impacts become UPPER_SNAKE; `examples[].event_request` references the v2.0.0 stored-event schema (the form a template evaluates); expected-transfer `amount` becomes `amount_minor`, a decimal integer string greater than zero. Workflow: `name` becomes `display_name`; `site_id` and `steps[].template_id` become decimal integer strings. Identifier keys such as `variables[].name` and `validations[].name` keep their names. The v2.0.0 schemas reference `common/v2.0.0/defs.schema.json` by its versioned URL, and `common/defs.schema.json` keeps its v1.0.0 content, because the frozen `domain/v1.0.0/` copies and `domain/audit-slug.schema.json` resolve their `$ref`s through that unversioned URL.
 
 Recent template change: `domain/template.schema.json` adds two optional top-level fields, and the published version stays at **v1.0.0**. `execution_class` names the template's execution class. `execution_approval` carries `mode` (`never`, `always` or `conditional`), a `description` that every mode except `never` requires, a `condition` that names a boolean variable of the template and that only `conditional` takes, and an optional `proposal_ttl` of at most 168 hours, such as `72h` or `7d`. A template without `execution_approval` posts without approval, as `never`. Under `conditional`, each example states `expected_approval`. No third party reads the template schema yet, so the fields change the current schema in place, with no version bump and no frozen copy; `domain/v1.0.0/template.schema.json` is unchanged. Each consumer takes the fields in its own ticket. accounting-rule-engine pins `domain/v1.0.0/template.schema.json` by path and moves to `domain/template.schema.json` in its own ticket. event-service2 bakes the latest `domain/template.schema.json` into its image at build time, and template-agent fetches the latest file at runtime, so each accepts the fields from its next build or fetch. An event-service2 image built before this change drops a template that carries either field, so accounting-rule-engine must not serve such a template in an environment until that environment's writer is rebuilt.
 
@@ -35,7 +39,18 @@ Recent workflow change: workflow schema **v1.0.0** requires top-level `accountin
 
 Recent change: template scopes now accept any lower snake case identifier defined by the template (beyond the legacy `primary` / `secondary` values), and the shared treatment-type enum documents the full adapter-supported set. These tighten validation but remain compatible with existing schema consumers, so the published version stays at **v1.0.0**.
 
-Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current published version is **v1.0.0**:
+Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current published version is **v2.0.0**:
+
+```
+common/v2.0.0/defs.schema.json
+domain/v2.0.0/event.schema.json
+domain/v2.0.0/stored-event.schema.json
+domain/v2.0.0/template.schema.json
+domain/v2.0.0/workflow.schema.json
+domain/v2.0.0/expected-transfer.schema.json
+```
+
+The frozen **v1.0.0** copies stay published:
 
 ```
 common/v1.0.0/defs.schema.json

@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json",
+  "title": "Common Definitions",
+  "description": "Shared type $defs used across all LedgerRocket schemas",
+  "$defs": {
+    "siteId": {
+      "type": "string",
+      "pattern": "^([1-9][0-9]{0,8}|1[0-9]{9}|20[0-9]{8}|21[0-3][0-9]{7}|214[0-6][0-9]{6}|2147[0-3][0-9]{5}|21474[0-7][0-9]{4}|214748[0-2][0-9]{3}|2147483[0-5][0-9]{2}|21474836[0-3][0-9]|214748364[0-6]|2147483647)$",
+      "description": "Tenant identifier: a decimal integer string in 1..2147483647, with no sign and no leading zero",
+      "examples": [
+        "1",
+        "42"
+      ]
+    },
+    "templateId": {
+      "type": "string",
+      "pattern": "^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-4]|65535)$",
+      "description": "Template identifier: a decimal integer string in 1..65535, with no sign and no leading zero",
+      "examples": [
+        "132",
+        "145",
+        "200"
+      ]
+    },
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-7][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "UUID (any RFC4122 version)",
+      "$comment": "Account IDs accept any RFC4122 UUID. Event IDs still enforce UUID v7 via event schema.",
+      "examples": [
+        "550e8400-e29b-41d4-a716-446655440000",
+        "01920000-0000-7000-8000-000000000001"
+      ]
+    },
+    "uuidV7": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "UUID v7 for time-ordering benefits",
+      "$comment": "UUID v7 provides natural time ordering for database indexing",
+      "examples": [
+        "550e8400-e29b-41d4-a716-446655440000",
+        "01920000-0000-7000-8000-000000000001"
+      ]
+    },
+    "variableName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Snake_case variable name",
+      "examples": [
+        "from_account_id",
+        "fee_amount",
+        "should_charge_fee"
+      ]
+    },
+    "legFieldReference": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.]*$",
+      "description": "Reference used in template legs (lowercase letters separated by dots)",
+      "examples": [
+        "transfer_amount",
+        "event.amount_minor",
+        "accounts.sender.account_id",
+        "accounts.receiver.ledger.currency.currency_code"
+      ]
+    },
+    "purposeName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "minLength": 1,
+      "maxLength": 50,
+      "description": "Account purpose identifier",
+      "examples": [
+        "from",
+        "to",
+        "fee",
+        "nostro",
+        "vostro"
+      ]
+    },
+    "upperSnakeCase": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "maxLength": 50,
+      "description": "UPPER_SNAKE_CASE identifier",
+      "examples": [
+        "FX_SERVICES",
+        "PAYMENTS",
+        "TRANSFER",
+        "PAYMENT"
+      ]
+    },
+    "accountType": {
+      "type": "string",
+      "enum": [
+        "ASSET",
+        "LIABILITY",
+        "EQUITY",
+        "REVENUE",
+        "EXPENSE",
+        "SUPPLEMENTAL"
+      ],
+      "description": "Financial statement account type",
+      "examples": [
+        "ASSET",
+        "REVENUE"
+      ]
+    },
+    "financialImpact": {
+      "type": "string",
+      "enum": [
+        "ANY",
+        "DECREASE",
+        "DECREASE_OR_NO_IMPACT",
+        "INCREASE",
+        "INCREASE_OR_DECREASE",
+        "INCREASE_OR_NO_IMPACT",
+        "NO_IMPACT"
+      ],
+      "description": "Impact on financial statement account type",
+      "$comment": "Use conditional options (e.g., 'INCREASE_OR_NO_IMPACT') when legs have conditions"
+    },
+    "shortString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Short text field"
+    },
+    "mediumString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "Medium text field"
+    },
+    "longString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "Long text field"
+    },
+    "extraLongString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10000,
+      "description": "Extra-long text field (e.g. workflow/template descriptions)"
+    },
+    "celExpression": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "description": "CEL (Common Expression Language) expression",
+      "$comment": "Must be valid CEL syntax"
+    },
+    "policyId": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9./_-]*[A-Z0-9]$",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Accounting policy reference ID (no URI scheme): uppercase letters and digits joined by . / _ -, starting and ending with a letter or digit, at most 100 characters. accounting-rule-engine enforces this exact pattern and this exact length on every template it accepts and every template it serves, and publishes both on PolicyRef.id.",
+      "examples": [
+        "IFRS9.B5.4.1",
+        "IAS32.DEPOSITS",
+        "INT/FEES-001",
+        "IFRS9.3.1.1",
+        "IAS21.21"
+      ]
+    },
+    "globPattern": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Glob pattern for matching",
+      "$comment": "Uses standard glob syntax: * matches any characters, ? matches single character",
+      "examples": [
+        "21*",
+        "400*",
+        "1[0-9]*",
+        "50[0-5]*"
+      ]
+    },
+    "positiveAmount": {
+      "type": "string",
+      "pattern": "^([1-9][0-9]{0,14}|[1-8][0-9]{15}|900[0-6][0-9]{12}|90070[0-9]{11}|90071[0-8][0-9]{10}|900719[0-8][0-9]{9}|9007199[0-1][0-9]{8}|90071992[0-4][0-9]{7}|900719925[0-3][0-9]{6}|9007199254[0-6][0-9]{5}|90071992547[0-3][0-9]{4}|9007199254740[0-8][0-9]{2}|90071992547409[0-8][0-9]|9007199254740990|9007199254740991)$",
+      "description": "Positive amount in minor units of the unit of account: a decimal integer string in 1..9007199254740991 (2^53 - 1), with no sign and no leading zero",
+      "$comment": "A JSON number is refused: the amount travels as a string so that no client reads it through a binary float",
+      "examples": [
+        "5000",
+        "10000",
+        "250000"
+      ]
+    },
+    "nonNegativeAmount": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,14}|[1-8][0-9]{15}|900[0-6][0-9]{12}|90070[0-9]{11}|90071[0-8][0-9]{10}|900719[0-8][0-9]{9}|9007199[0-1][0-9]{8}|90071992[0-4][0-9]{7}|900719925[0-3][0-9]{6}|9007199254[0-6][0-9]{5}|90071992547[0-3][0-9]{4}|9007199254740[0-8][0-9]{2}|90071992547409[0-8][0-9]|9007199254740990|9007199254740991)$",
+      "description": "Non-negative amount in minor units of the unit of account: a decimal integer string in 0..9007199254740991 (2^53 - 1), with no sign and no leading zero; zero is only meaningful where an explicit contract (e.g. the event 'ZERO_AMOUNT' directive) permits it",
+      "$comment": "Zero allowed; pair with a conditional rule so zero is never accepted silently",
+      "examples": [
+        "0",
+        "5000",
+        "250000"
+      ]
+    },
+    "eventSource": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "System or service that originated the event",
+      "examples": [
+        "payment-gateway",
+        "mobile-app",
+        "backoffice",
+        "reconciliation-service",
+        "batch-processor"
+      ]
+    },
+    "ledgerScope": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$",
+      "maxLength": 100,
+      "description": "Lower snake case ledger scope identifier defined by the template",
+      "$comment": "Scope identifiers are template-defined; 'primary' and 'secondary' remain valid but are no longer the only options.",
+      "examples": [
+        "primary",
+        "secondary",
+        "funding_ledger",
+        "payment_currency_ledger"
+      ]
+    },
+    "treatmentType": {
+      "type": "string",
+      "enum": [
+        "CASH_MOVEMENT",
+        "SETTLEMENT_CLEARING",
+        "REFUND_REVERSAL",
+        "FEE_REVENUE",
+        "FEE_COST",
+        "FEE_ACCRUAL",
+        "ACCRUAL_INTEREST_INCOME",
+        "ACCRUAL_INTEREST_EXPENSE",
+        "IMPAIRMENT_PROVISION",
+        "IMPAIRMENT_RELEASE",
+        "WRITE_OFF",
+        "RECOVERY_POST_WRITEOFF",
+        "ACCRUAL_NON_INTEREST",
+        "AMORTISATION_NON_INTEREST",
+        "INTEREST_CAPITALISATION",
+        "LOAN_PRINCIPAL_DISBURSEMENT",
+        "LOAN_PRINCIPAL_REPAYMENT",
+        "CUSTOMER_DEPOSIT_RECEIPT",
+        "CUSTOMER_WITHDRAWAL",
+        "INTERNAL_TRANSFER",
+        "OPENING_BALANCE_ADJUSTMENT",
+        "SYSTEM_CORRECTION",
+        "ADJUSTMENT_MANUAL",
+        "PERIOD_CLOSE_ALLOCATION",
+        "REVALUATION_FX",
+        "REALIZED_FX",
+        "REVALUATION_FAIR_VALUE",
+        "REALIZED_FAIR_VALUE",
+        "HEDGE_CASH_FLOW_RESERVE",
+        "HEDGE_FAIR_VALUE_ADJUSTMENT",
+        "DAY_ONE_PNL",
+        "CAPITAL_INJECTION",
+        "CAPITAL_REDEMPTION",
+        "DIVIDEND_DISTRIBUTION",
+        "TAX_REVENUE",
+        "TAX_EXPENSE",
+        "WITHHOLDING_TAX",
+        "CHARGEBACK",
+        "REPRESENTMENT",
+        "FEE_REBATE",
+        "COMMISSION_REVENUE",
+        "COMMISSION_COST",
+        "COUPON_INCOME",
+        "COUPON_EXPENSE",
+        "DIVIDEND_INCOME",
+        "REPO_INTEREST_EXPENSE",
+        "REVERSE_REPO_INTEREST_INCOME",
+        "STOCK_BORROW_FEE",
+        "STOCK_LEND_REBATE",
+        "CORPORATE_ACTION_ADJUSTMENT",
+        "FAIL_TO_DELIVER_PENALTY",
+        "FAIL_TO_RECEIVE_PENALTY",
+        "DERIVATIVE_INITIAL_MARGIN",
+        "DERIVATIVE_VARIATION_MARGIN",
+        "COLLATERAL_PLEDGE",
+        "COLLATERAL_RECEIVE",
+        "COLLATERAL_INTEREST",
+        "CVA_ADJUSTMENT",
+        "DVA_ADJUSTMENT",
+        "FVA_ADJUSTMENT",
+        "CRYPTO_NETWORK_FEE",
+        "CRYPTO_STAKING_REWARD_INCOME",
+        "CRYPTO_STAKING_SLASH_EXPENSE",
+        "CRYPTO_CUSTODY_FEE_COST",
+        "CRYPTO_AIRDROP_INCOME",
+        "CRYPTO_BURN_ADJUSTMENT",
+        "CRYPTO_CHAIN_REORG_ADJUSTMENT",
+        "INVESTMENT_PRINCIPAL_PURCHASE",
+        "INVESTMENT_PRINCIPAL_SALE"
+      ],
+      "description": "Accounting treatment classification (see docs/functional-specification.md \u00a75.2 for definitions and data requirements)",
+      "$comment": "Categorizes transfers for regulatory reporting and describes how the leg impacts financial statements; names are immutable once released",
+      "examples": [
+        "CASH_MOVEMENT",
+        "FEE_REVENUE",
+        "REVALUATION_FX"
+      ]
+    }
+  },
+  "version": "2.0.0"
+}

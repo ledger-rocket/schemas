@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
+  "title": "Event Request",
+  "description": "Financial event a producer sends to be processed into ledger transfers. The site is the request path, so the body carries no site_id; stored-event.schema.json describes the event as the event service stores it.",
+  "type": "object",
+  "required": [
+    "$schema",
+    "event_id",
+    "template_ids",
+    "amount_minor",
+    "occur_time",
+    "event_source"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "enum": [
+        "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
+        "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json"
+      ],
+      "description": "Published URL of the event schema that describes this event payload: the latest schema or the frozen v2.0.0 copy",
+      "examples": [
+        "https://ledger-rocket.github.io/schemas/domain/event.schema.json"
+      ]
+    },
+    "event_source": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/eventSource",
+      "description": "System or service that originated the event",
+      "examples": [
+        "payment-gateway",
+        "mobile-app",
+        "backoffice"
+      ]
+    },
+    "event_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/uuidV7",
+      "description": "UUID v7 for idempotency and natural time ordering",
+      "examples": [
+        "0192e4d8-7b20-7f89-a123-456789abcd01"
+      ]
+    },
+    "template_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/templateId"
+      },
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
+      "description": "Array of template IDs to process atomically (ALL must succeed or ALL fail)",
+      "examples": [
+        [
+          "132"
+        ],
+        [
+          "132",
+          "145"
+        ]
+      ]
+    },
+    "amount_minor": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/nonNegativeAmount",
+      "description": "Transaction amount in minor units of the unit of account, as a decimal integer string. Exactly \"0\" if and only if the 'ZERO_AMOUNT' directive is present (see allOf rule): templates then derive leg amounts from event metadata.",
+      "examples": [
+        "5000",
+        "10000",
+        "250000"
+      ]
+    },
+    "occur_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the business event occurred: an RFC 3339 date-time with any offset, at most millisecond precision",
+      "examples": [
+        "2023-11-23T13:30:00.000Z",
+        "2025-01-03T16:00:00.000Z"
+      ]
+    },
+    "accounts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "purpose"
+        ],
+        "oneOf": [
+          {
+            "required": [
+              "account_id"
+            ]
+          },
+          {
+            "required": [
+              "external_account_id"
+            ]
+          }
+        ],
+        "properties": {
+          "purpose": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/purposeName",
+            "description": "Account purpose matching template requirements",
+            "examples": [
+              "from",
+              "to",
+              "fee",
+              "nostro",
+              "vostro"
+            ]
+          },
+          "account_id": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/uuid",
+            "description": "Internal Ledger Service account UUID. Exactly one of account_id and external_account_id must be present.",
+            "examples": [
+              "0192e4d8-7b23-7f89-a123-456789abcdef",
+              "0192e4d8-7b24-7f89-a123-456789abcde0"
+            ]
+          },
+          "external_account_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Customer-supplied external account id, resolved to a Ledger Service account for the site. Exactly one of account_id and external_account_id must be present.",
+            "examples": [
+              "ACC-100234",
+              "customer-wallet-42"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "$comment": "The oneOf enforces account_id XOR external_account_id: an item carrying both ids matches both branches and an item carrying neither matches none, so both cases fail. The Event Service rejects those cases with a 422."
+      },
+      "minItems": 1,
+      "maxItems": 50,
+      "uniqueItems": true,
+      "description": "Account mappings for the event. Each account must have a unique purpose value.",
+      "$comment": "uniqueItems validates object equality, not individual properties. Runtime validation required: purposes must be unique across array",
+      "examples": [
+        [
+          {
+            "purpose": "from",
+            "account_id": "0192e4d8-7b23-7f89-a123-456789abcdef"
+          },
+          {
+            "purpose": "to",
+            "account_id": "0192e4d8-7b24-7f89-a123-456789abcde0"
+          },
+          {
+            "purpose": "fee",
+            "account_id": "0192e4d8-7b27-7f89-a123-456789abcde3"
+          }
+        ],
+        [
+          {
+            "purpose": "from",
+            "external_account_id": "ACC-100234"
+          },
+          {
+            "purpose": "to",
+            "account_id": "0192e4d8-7b24-7f89-a123-456789abcde0"
+          }
+        ]
+      ]
+    },
+    "extra_metadata": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+        "maxLength": 100
+      },
+      "maxProperties": 100,
+      "description": "Additional context validated against template's metadata_schema",
+      "$comment": "Fields starting with '__' are reserved for system use. Structure validated against each template's metadata_schema",
+      "examples": [
+        {
+          "customer_name": "John Doe",
+          "reference": "INV-2024-001"
+        },
+        {
+          "customer_name": "Jane Smith",
+          "reference": "PAY-2024-002",
+          "payment_method": "wire_transfer",
+          "notes": "Quarterly payment"
+        }
+      ]
+    },
+    "original_event_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/uuid",
+      "description": "First event in the series (optional linkage)",
+      "examples": [
+        "0192e4d8-7b23-7f89-a123-456789abcd11"
+      ]
+    },
+    "previous_event_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/uuidV7",
+      "description": "Immediate predecessor event in the chain (optional)",
+      "examples": [
+        "0192e4d8-7b23-7f89-a123-456789abcd12"
+      ]
+    },
+    "directives": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "MANUAL_ROLLUP_OVERRIDE",
+          "SKIP_ROLLUP_PROCESSING",
+          "SEED_MODE",
+          "BACKFILL",
+          "ZERO_AMOUNT"
+        ]
+      },
+      "uniqueItems": true,
+      "description": "Processing directives. Canonical UPPER_SNAKE values only, no duplicates. 'SEED_MODE' requires 'ledger_timestamp' to be present and positive. 'BACKFILL' marks a historical backfill, relaxing the occur_time staleness ceiling. 'ZERO_AMOUNT' declares the event-level amount as not meaningful and requires amount_minor == \"0\" (and amount_minor == \"0\" requires this directive); template legs derive amounts from event metadata.",
+      "examples": [
+        [
+          "SEED_MODE"
+        ],
+        [
+          "MANUAL_ROLLUP_OVERRIDE",
+          "SKIP_ROLLUP_PROCESSING"
+        ],
+        [
+          "ZERO_AMOUNT"
+        ]
+      ]
+    },
+    "workflow_id": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/uuid",
+      "description": "Workflow execution identifier. Required when 'step_code' is present.",
+      "examples": [
+        "0192e4d8-7b23-7f89-a123-456789abcd13"
+      ]
+    },
+    "step_code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Workflow step code in lowercase snake_case. Requires 'workflow_id' to be present.",
+      "examples": [
+        "capture",
+        "settle_funds"
+      ]
+    },
+    "ledger_timestamp": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Imported ledger timestamp in Unix milliseconds (UTC). Required and positive when the 'SEED_MODE' directive is present; applied as the TigerBeetle imported transfer timestamp.",
+      "examples": [
+        1700746200000
+      ]
+    },
+    "reversal": {
+      "type": "boolean",
+      "description": "Reversal marker. Rejected on the regular ingestion and validation endpoints; reversal transfers are generated internally.",
+      "examples": [
+        false
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
+      "event_source": "payment-gateway",
+      "event_id": "0192e4d8-7b20-7f89-a123-456789abcd01",
+      "template_ids": [
+        "132"
+      ],
+      "amount_minor": "5000",
+      "occur_time": "2023-11-23T13:30:00.000Z",
+      "accounts": [
+        {
+          "purpose": "from",
+          "account_id": "0192e4d8-7b23-7f89-a123-456789abcdef"
+        },
+        {
+          "purpose": "to",
+          "account_id": "0192e4d8-7b24-7f89-a123-456789abcde0"
+        },
+        {
+          "purpose": "fee",
+          "account_id": "0192e4d8-7b27-7f89-a123-456789abcde3"
+        }
+      ],
+      "extra_metadata": {
+        "customer_name": "John Doe",
+        "reference": "INV-2024-001"
+      },
+      "original_event_id": "0192e4d8-7b23-7f89-a123-456789abcd11",
+      "previous_event_id": "0192e4d8-7b23-7f89-a123-456789abcd12"
+    },
+    {
+      "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
+      "event_source": "mobile-app",
+      "event_id": "0192e4d8-7b21-7f89-a123-456789abcd02",
+      "template_ids": [
+        "132",
+        "145"
+      ],
+      "amount_minor": "10000",
+      "occur_time": "2023-11-23T13:31:40.000Z",
+      "accounts": [
+        {
+          "purpose": "from",
+          "account_id": "0192e4d8-7b25-7f89-a123-456789abcde1"
+        },
+        {
+          "purpose": "to",
+          "account_id": "0192e4d8-7b26-7f89-a123-456789abcde2"
+        }
+      ],
+      "extra_metadata": {
+        "customer_name": "Jane Smith",
+        "reference": "PAY-2024-002",
+        "payment_method": "wire_transfer"
+      },
+      "original_event_id": "0192e4d8-7b23-7f89-a123-456789abcd11",
+      "previous_event_id": "0192e4d8-7b23-7f89-a123-456789abcd12"
+    }
+  ],
+  "version": "2.0.0",
+  "allOf": [
+    {
+      "$comment": "ZERO_AMOUNT iff rule: the directive is present if and only if amount_minor == \"0\"",
+      "if": {
+        "required": [
+          "directives"
+        ],
+        "properties": {
+          "directives": {
+            "contains": {
+              "const": "ZERO_AMOUNT"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "amount_minor": {
+            "const": "0"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "amount_minor": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/positiveAmount"
+          }
+        }
+      }
+    }
+  ]
+}
