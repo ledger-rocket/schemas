@@ -1,0 +1,12 @@
+{
+  "base": "approval-always.json",
+  "set": {
+    "execution_approval": {
+      "mode": "always",
+      "description": "Exchanges wait for a second person before they post.",
+      "proposal_ttl": "0d"
+    }
+  },
+  "keyword": "pattern",
+  "path": "$.execution_approval.proposal_ttl"
+}

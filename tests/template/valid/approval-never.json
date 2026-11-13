@@ -1,0 +1,70 @@
+{
+  "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/template.schema.json",
+  "template_id": 7101,
+  "site_id": 1,
+  "name": "Transfer without approval",
+  "product": "PAYMENTS",
+  "event_type": "INTERNAL_TRANSFER",
+  "category": "RETAIL_PAYMENTS",
+  "description": "Moves a customer's money between two of their own accounts.",
+  "trigger": "Customer moves money between two of their own accounts",
+  "execution_approval": {
+    "mode": "never"
+  },
+  "account_code_validations": [
+    {
+      "purpose": "customer_source_liability",
+      "mask": "21010",
+      "description": "Account the money leaves"
+    },
+    {
+      "purpose": "customer_target_liability",
+      "mask": "21010",
+      "description": "Account the money enters"
+    }
+  ],
+  "accounting_treatments": [
+    {
+      "type": "internal_transfer",
+      "policy_refs": [
+        {
+          "id": "IAS32.42"
+        }
+      ],
+      "description": "The customer's deposit moves between two of their accounts."
+    }
+  ],
+  "financial_statements_impact": [
+    {
+      "ledger_scope": "operational_source",
+      "account_type": "LIABILITY",
+      "impact": "no_impact",
+      "description": "Total customer deposits do not change."
+    }
+  ],
+  "variables": [],
+  "validations": [
+    {
+      "name": "positive_amount",
+      "expression": "amount > 0",
+      "description": "A transfer moves a positive amount."
+    }
+  ],
+  "legs": [
+    {
+      "leg_number": 1,
+      "description": "Customer moves the money.",
+      "debit_account": "accounts.customer_source_liability.account_id",
+      "debit_account_type": "LIABILITY",
+      "credit_account": "accounts.customer_target_liability.account_id",
+      "credit_account_type": "LIABILITY",
+      "amount": "amount",
+      "ledger_scope": "operational_source",
+      "treatment_type": "internal_transfer"
+    }
+  ],
+  "metadata_schema": {
+    "type": "object",
+    "properties": {}
+  }
+}

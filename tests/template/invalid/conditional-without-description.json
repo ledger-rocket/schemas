@@ -1,0 +1,11 @@
+{
+  "base": "approval-conditional.json",
+  "set": {
+    "execution_approval": {
+      "mode": "conditional",
+      "condition": "needs_second_approver"
+    }
+  },
+  "keyword": "required",
+  "path": "$.execution_approval"
+}
