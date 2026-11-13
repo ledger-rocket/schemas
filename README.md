@@ -12,7 +12,23 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 | `domain/expected-transfer.schema.json` | Expected transfer output for template validation/testing | https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json |
 | `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
 
-Recent template change: `domain/template.schema.json` adds two optional top-level fields, and the published version stays at **v1.0.0**. `execution_class` names the template's execution class. `execution_approval` carries `mode` (`never`, `always` or `conditional`), a `description` that every mode except `never` requires, a `condition` that names a boolean variable of the template and that only `conditional` takes, and an optional `proposal_ttl` of at most 168 hours, such as `72h` or `7d`. A template without `execution_approval` posts without approval, as `never`. Under `conditional`, each example states `expected_approval`. No third party reads the template schema yet, so the fields change the current schema in place, with no version bump and no frozen copy; `domain/v1.0.0/template.schema.json` is unchanged. Each consumer takes the fields in its own ticket. accounting-rule-engine pins `domain/v1.0.0/template.schema.json` by path and moves to `domain/template.schema.json` in its own ticket. event-service2 bakes the latest `domain/template.schema.json` into its image at build time, and template-agent fetches the latest file at runtime, so each accepts the fields from its next build or fetch. An event-service2 image built before this change drops a template that carries either field, so accounting-rule-engine must not serve such a template in an environment until that environment's writer is rebuilt.
+Breaking event change, event schema **v2.0.0**: `workflow_id` and `step_code` are required on every event.
+`workflow_id` is the Accounting Rule Engine workflow definition id on the event's site (the workflow's `workflow_id`), not an execution id.
+`step_code` is the `id` of a step of that workflow, in lowercase snake_case.
+The types of both fields do not change.
+`$schema` accepts the new frozen URL `https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json` beside the latest URL and the frozen v1.0.0 URL; `$schema` names a published schema and does not select the schema that validates the event.
+The root keeps its shape, and only its `required` list grows.
+`$defs/eventWithOptionalWorkflow` is the same event with both fields optional: each of its properties and its `allOf` rule refer to the root's.
+`domain/v1.0.0/event.schema.json` is unchanged, and `domain/v2.0.0/event.schema.json` is the new frozen copy.
+
+Template example rule: `examples[].event_request` in both template schema copies references `event.schema.json#/$defs/eventWithOptionalWorkflow`, so a stored template whose examples lack `workflow_id` and `step_code` stays valid.
+The rule that authored template examples carry both fields belongs to the Accounting Rule Engine, not to the template schema.
+The template schema stays at **v1.0.0**, because it accepts every template that it accepted before, and the frozen `domain/v1.0.0/template.schema.json` copy carries the same change.
+Because the definition exists from event schema 2.0.0, the v1.0.0 template copy resolves only beside event schema 2.0.0 or later under the event `$id`; it does not resolve beside the frozen v1.0.0 event copy.
+The validation examples below pair it with `domain/v2.0.0/event.schema.json`.
+CI runs `.github/scripts/check_examples.py`, which validates every embedded example against the schema node that holds it and checks the workflow rule in both directions.
+
+Recent template change: `domain/template.schema.json` adds two optional top-level fields, and the published version stays at **v1.0.0**. `execution_class` names the template's execution class. `execution_approval` carries `mode` (`never`, `always` or `conditional`), a `description` that every mode except `never` requires, a `condition` that names a boolean variable of the template and that only `conditional` takes, and an optional `proposal_ttl` of at most 168 hours, such as `72h` or `7d`. A template without `execution_approval` posts without approval, as `never`. Under `conditional`, each example states `expected_approval`. No third party reads the template schema yet, so the fields change the current schema in place, with no version bump and no frozen copy; `domain/v1.0.0/template.schema.json` does not take the two fields. Each consumer takes the fields in its own ticket. accounting-rule-engine pins `domain/v1.0.0/template.schema.json` by path and moves to `domain/template.schema.json` in its own ticket. event-service2 bakes the latest `domain/template.schema.json` into its image at build time, and template-agent fetches the latest file at runtime, so each accepts the fields from its next build or fetch. An event-service2 image built before this change drops a template that carries either field, so accounting-rule-engine must not serve such a template in an environment until that environment's writer is rebuilt.
 
 Recent event change: each `accounts` entry now carries `account_id` XOR `external_account_id` (exactly one; `purpose` stays required). `external_account_id` is the customer-supplied external account id, resolved to a Ledger Service account for the site. This matches the contract both Event Service engines already enforce (supplying both or neither is a 422) and relaxes the schema, so existing instances stay valid and the published version stays at **v1.0.0**.
 
@@ -35,9 +51,10 @@ Recent workflow change: workflow schema **v1.0.0** requires top-level `accountin
 
 Recent change: template scopes now accept any lower snake case identifier defined by the template (beyond the legacy `primary` / `secondary` values), and the shared treatment-type enum documents the full adapter-supported set. These tighten validation but remain compatible with existing schema consumers, so the published version stays at **v1.0.0**.
 
-Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current published version is **v1.0.0**:
+Each schema exposes a top-level `"version"` field. When a breaking change is released, the major version increments and a frozen copy is published under `vX.Y.Z/`. The current published versions are **v2.0.0** for the event schema and **v1.0.0** for the other schemas:
 
-```
+```text
+domain/v2.0.0/event.schema.json
 common/v1.0.0/defs.schema.json
 domain/v1.0.0/event.schema.json
 domain/v1.0.0/template.schema.json
@@ -71,7 +88,7 @@ from jsonschema import Draft202012Validator, RefResolver
 BASE = "https://ledger-rocket.github.io/schemas/domain/"
 SCHEMAS = {
     "template": json.load(urlopen(f"{BASE}v1.0.0/template.schema.json")),
-    "event": json.load(urlopen(f"{BASE}v1.0.0/event.schema.json")),
+    "event": json.load(urlopen(f"{BASE}v2.0.0/event.schema.json")),
     "expected": json.load(urlopen(f"{BASE}v1.0.0/expected-transfer.schema.json")),
 }
 refs = {SCHEMAS[name]["$id"]: doc for name, doc in SCHEMAS.items()}
@@ -150,7 +167,7 @@ import addFormats from "ajv-formats";
 const BASE = "https://ledger-rocket.github.io/schemas/";
 const [defs, eventSchema, expectedSchema, templateSchema] = await Promise.all([
   fetch(`${BASE}common/v1.0.0/defs.schema.json`).then((res) => res.json()),
-  fetch(`${BASE}domain/v1.0.0/event.schema.json`).then((res) => res.json()),
+  fetch(`${BASE}domain/v2.0.0/event.schema.json`).then((res) => res.json()),
   fetch(`${BASE}domain/v1.0.0/expected-transfer.schema.json`).then((res) => res.json()),
   fetch(`${BASE}domain/v1.0.0/template.schema.json`).then((res) => res.json()),
 ]);

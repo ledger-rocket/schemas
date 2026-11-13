@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
   "title": "Event Request",
-  "description": "Financial event to be processed into ledger transfers",
+  "description": "Financial event to be processed into ledger transfers. Every event names its workflow (workflow_id) and the step of that workflow (step_code).",
   "type": "object",
   "required": [
     "$schema",
@@ -11,16 +11,19 @@
     "site_id",
     "amount",
     "occurred_at",
-    "event_source"
+    "event_source",
+    "workflow_id",
+    "step_code"
   ],
   "properties": {
     "$schema": {
       "type": "string",
       "enum": [
         "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
-        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json"
+        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+        "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json"
       ],
-      "description": "Published URL of the event schema that describes this event payload: the latest schema or the frozen v1.0.0 copy",
+      "description": "Published URL of the event schema that describes this event payload: the latest schema or a frozen copy (v1.0.0, v2.0.0)",
       "examples": [
         "https://ledger-rocket.github.io/schemas/domain/event.schema.json"
       ]
@@ -38,7 +41,7 @@
       "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuidV7",
       "description": "UUID v7 for idempotency and natural time ordering",
       "examples": [
-        "550e8400-e29b-41d4-a716-446655440000"
+        "0192e4d8-7b20-7f89-a123-456789abcd01"
       ]
     },
     "template_ids": {
@@ -142,15 +145,15 @@
         [
           {
             "purpose": "from",
-            "account_id": "account-uuid-1"
+            "account_id": "0192e4d8-7b23-7f89-a123-456789abcdef"
           },
           {
             "purpose": "to",
-            "account_id": "account-uuid-2"
+            "account_id": "0192e4d8-7b24-7f89-a123-456789abcde0"
           },
           {
             "purpose": "fee",
-            "account_id": "fee-account-uuid"
+            "account_id": "0192e4d8-7b25-7f89-a123-456789abcde1"
           }
         ],
         [
@@ -230,7 +233,7 @@
     },
     "workflow_id": {
       "$ref": "https://ledger-rocket.github.io/schemas/common/defs.schema.json#/$defs/uuid",
-      "description": "Workflow execution identifier. Required when 'step_code' is present.",
+      "description": "Identifier of the Accounting Rule Engine workflow definition on the event's site that this event belongs to: the workflow's workflow_id, not an execution identifier. Required from version 2.0.0.",
       "examples": [
         "0192e4d8-7b23-7f89-a123-456789abcd13"
       ]
@@ -238,7 +241,7 @@
     "step_code": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*$",
-      "description": "Workflow step code in lowercase snake_case. Requires 'workflow_id' to be present.",
+      "description": "Code of the step of that workflow that this event performs: the workflow step id, in lowercase snake_case. Required from version 2.0.0.",
       "examples": [
         "capture",
         "settle_funds"
@@ -265,7 +268,7 @@
     {
       "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
       "event_source": "payment-gateway",
-      "event_id": "550e8400-e29b-41d4-a716-446655440000",
+      "event_id": "0192e4d8-7b20-7f89-a123-456789abcd01",
       "template_ids": [
         132
       ],
@@ -275,15 +278,15 @@
       "accounts": [
         {
           "purpose": "from",
-          "account_id": "account-uuid-1"
+          "account_id": "0192e4d8-7b23-7f89-a123-456789abcdef"
         },
         {
           "purpose": "to",
-          "account_id": "account-uuid-2"
+          "account_id": "0192e4d8-7b24-7f89-a123-456789abcde0"
         },
         {
           "purpose": "fee",
-          "account_id": "fee-account-uuid"
+          "account_id": "0192e4d8-7b25-7f89-a123-456789abcde1"
         }
       ],
       "extra_metadata": {
@@ -291,12 +294,14 @@
         "reference": "INV-2024-001"
       },
       "original_event_id": "0192e4d8-7b23-7f89-a123-456789abcd11",
-      "previous_event_id": "0192e4d8-7b23-7f89-a123-456789abcd12"
+      "previous_event_id": "0192e4d8-7b23-7f89-a123-456789abcd12",
+      "workflow_id": "0192e4d8-7b23-7f89-a123-456789abcd13",
+      "step_code": "capture"
     },
     {
-      "$schema": "https://ledger-rocket.github.io/schemas/domain/event.schema.json",
+      "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
       "event_source": "mobile-app",
-      "event_id": "660e8400-e29b-41d4-a716-446655440001",
+      "event_id": "0192e4d8-7b21-7f89-a123-456789abcd02",
       "template_ids": [
         132,
         145
@@ -307,11 +312,11 @@
       "accounts": [
         {
           "purpose": "from",
-          "account_id": "account-uuid-3"
+          "account_id": "0192e4d8-7b26-7f89-a123-456789abcde2"
         },
         {
           "purpose": "to",
-          "account_id": "account-uuid-4"
+          "account_id": "0192e4d8-7b27-7f89-a123-456789abcde3"
         }
       ],
       "extra_metadata": {
@@ -320,10 +325,12 @@
         "payment_method": "wire_transfer"
       },
       "original_event_id": "0192e4d8-7b23-7f89-a123-456789abcd11",
-      "previous_event_id": "0192e4d8-7b23-7f89-a123-456789abcd12"
+      "previous_event_id": "0192e4d8-7b23-7f89-a123-456789abcd12",
+      "workflow_id": "0192e4d8-7b23-7f89-a123-456789abcd13",
+      "step_code": "settle_funds"
     }
   ],
-  "version": "1.0.0",
+  "version": "2.0.0",
   "allOf": [
     {
       "$comment": "zero_amount iff rule: the directive is present if and only if amount == 0",
@@ -354,5 +361,76 @@
         }
       }
     }
-  ]
+  ],
+  "$defs": {
+    "eventWithOptionalWorkflow": {
+      "$comment": "The event with workflow_id and step_code optional: each property and the allOf rule refer to the root's, and only the required list differs. Template examples (examples[].event_request in template.schema.json) reference this definition, so a stored template whose examples lack the two fields stays valid.",
+      "type": "object",
+      "required": [
+        "$schema",
+        "event_id",
+        "template_ids",
+        "site_id",
+        "amount",
+        "occurred_at",
+        "event_source"
+      ],
+      "properties": {
+        "$schema": {
+          "$ref": "#/properties/$schema"
+        },
+        "event_source": {
+          "$ref": "#/properties/event_source"
+        },
+        "event_id": {
+          "$ref": "#/properties/event_id"
+        },
+        "template_ids": {
+          "$ref": "#/properties/template_ids"
+        },
+        "site_id": {
+          "$ref": "#/properties/site_id"
+        },
+        "amount": {
+          "$ref": "#/properties/amount"
+        },
+        "occurred_at": {
+          "$ref": "#/properties/occurred_at"
+        },
+        "accounts": {
+          "$ref": "#/properties/accounts"
+        },
+        "extra_metadata": {
+          "$ref": "#/properties/extra_metadata"
+        },
+        "original_event_id": {
+          "$ref": "#/properties/original_event_id"
+        },
+        "previous_event_id": {
+          "$ref": "#/properties/previous_event_id"
+        },
+        "directives": {
+          "$ref": "#/properties/directives"
+        },
+        "workflow_id": {
+          "$ref": "#/properties/workflow_id"
+        },
+        "step_code": {
+          "$ref": "#/properties/step_code"
+        },
+        "ledger_timestamp": {
+          "$ref": "#/properties/ledger_timestamp"
+        },
+        "is_reversal": {
+          "$ref": "#/properties/is_reversal"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/allOf/0"
+        }
+      ]
+    }
+  }
 }
