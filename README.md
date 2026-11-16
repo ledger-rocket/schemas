@@ -45,6 +45,37 @@ domain/v1.0.0/workflow.schema.json
 domain/v1.0.0/expected-transfer.schema.json
 ```
 
+## v2.0.0
+
+v2.0.0 is the AEP naming of the same contracts (PRO-3419). It is published only under `common/v2.0.0/` and `domain/v2.0.0/`:
+
+```
+common/v2.0.0/defs.schema.json
+domain/v2.0.0/event.schema.json
+domain/v2.0.0/template.schema.json
+domain/v2.0.0/workflow.schema.json
+domain/v2.0.0/expected-transfer.schema.json
+```
+
+Each v2.0.0 file has its own `$id` under `v2.0.0/`, and every `$ref` in it names a v2.0.0 URL.
+The unversioned files and the v1.0.0 copies stay on v1, so v1 readers do not change.
+The v1.0.0 copies `$ref` the unversioned files, so the unversioned files move to v2 only after the last v1 reader moves.
+An event that names `domain/v2.0.0/event.schema.json` in `$schema` follows v2.0.0; the v2.0.0 event schema accepts no other `$schema` value.
+
+| v1 field | v2.0.0 field | v2.0.0 value |
+| --- | --- | --- |
+| event `amount`, expected transfer `amount` | `amount_minor` | integer string in minor units: digits only, no sign, no leading zero, at most 9223372036854775807 |
+| template `legs[].amount` | `legs[].amount_minor` | a reference, or a literal integer string as above |
+| event `occurred_at` | `occur_time` | RFC 3339 UTC with `Z` and exactly 3 fraction digits, such as `2023-11-23T13:30:00.000Z` |
+| event `ledger_timestamp` | `ledger_time` | as `occur_time`, not before `1970-01-01T00:00:00.000Z` |
+| template `name`, template `examples[].name`, workflow `name` | `display_name` | 1 to 255 characters |
+| expected transfer `debit_account_name`, `credit_account_name` | `debit_account_display_name`, `credit_account_display_name` | at most 255 characters |
+| template `variables[].name`, `validations[].name` | `key` | unchanged pattern |
+| template `execution_approval.proposal_ttl` (`"72h"`, `"7d"`) | `execution_approval.proposal_ttl_millis` | integer milliseconds, a whole number of hours from 3600000 to 604800000 |
+
+`$defs/unixTimestamp` is `$defs/timestamp` in v2.0.0, `$defs/positiveAmount` and `$defs/nonNegativeAmount` are integer strings, and `$defs/displayName` is new.
+The fixtures under `tests/v2.0.0/` and the root `examples` of the v2.0.0 schemas are checked in CI by `.github/scripts/check_instances.py`.
+
 ## Editor Integration
 
 Add a `$schema` declaration that points at the hosted URL—relative paths are intentionally unsupported:
