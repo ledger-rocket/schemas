@@ -2,7 +2,7 @@
   "base": "transfer.json",
   "set": {
     "directives": [
-      "zero_amount"
+      "ZERO_AMOUNT"
     ]
   },
   "keyword": "const",

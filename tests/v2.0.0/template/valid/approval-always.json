@@ -10,7 +10,7 @@
   "trigger": "Customer moves money between two of their own accounts",
   "execution_class": "payments",
   "execution_approval": {
-    "mode": "always",
+    "mode": "ALWAYS",
     "description": "Every transfer waits for a second person.",
     "proposal_ttl_millis": 604800000
   },
@@ -28,7 +28,7 @@
   ],
   "accounting_treatments": [
     {
-      "type": "internal_transfer",
+      "type": "INTERNAL_TRANSFER",
       "policy_refs": [
         {
           "id": "IAS32.42"
@@ -41,7 +41,7 @@
     {
       "ledger_scope": "operational_source",
       "account_type": "LIABILITY",
-      "impact": "no_impact",
+      "impact": "NO_IMPACT",
       "description": "Total customer deposits do not change."
     }
   ],
@@ -63,7 +63,7 @@
       "credit_account_type": "LIABILITY",
       "amount_minor": "amount_minor",
       "ledger_scope": "operational_source",
-      "treatment_type": "internal_transfer"
+      "treatment_type": "INTERNAL_TRANSFER"
     }
   ],
   "metadata_schema": {

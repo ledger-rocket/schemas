@@ -2,7 +2,7 @@
   "base": "approval-conditional.json",
   "set": {
     "execution_approval": {
-      "mode": "conditional",
+      "mode": "CONDITIONAL",
       "condition": "needs_second_approver"
     }
   },

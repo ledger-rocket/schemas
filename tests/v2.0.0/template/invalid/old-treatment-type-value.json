@@ -1,0 +1,18 @@
+{
+  "base": "approval-never.json",
+  "set": {
+    "accounting_treatments": [
+      {
+        "type": "internal_transfer",
+        "policy_refs": [
+          {
+            "id": "IAS32.42"
+          }
+        ],
+        "description": "The customer's deposit moves between two of their accounts."
+      }
+    ]
+  },
+  "keyword": "enum",
+  "path": "$.accounting_treatments[0].type"
+}

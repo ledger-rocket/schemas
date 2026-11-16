@@ -2,7 +2,7 @@
   "base": "approval-never.json",
   "set": {
     "execution_approval": {
-      "mode": "never",
+      "mode": "NEVER",
       "condition": "needs_second_approver"
     }
   },

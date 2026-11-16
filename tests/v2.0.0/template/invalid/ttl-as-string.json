@@ -2,7 +2,7 @@
   "base": "approval-always.json",
   "set": {
     "execution_approval": {
-      "mode": "always",
+      "mode": "ALWAYS",
       "description": "Exchanges wait for a second person before they post.",
       "proposal_ttl_millis": "7d"
     }
