@@ -161,14 +161,15 @@
             "Payments above 1,000.00 wait for a second person."
           ]
         },
-        "proposal_ttl": {
-          "type": "string",
-          "pattern": "^(([1-9]|[1-9][0-9]|1[0-5][0-9]|16[0-8])h|[1-7]d)$",
-          "maxLength": 4,
-          "description": "How long a proposal may wait for approval, counted from its creation: 1h to 168h, or 1d to 7d. A day is 24 hours. 168 hours is the writer's maximum proposal lifetime, so a longer value is refused, never shortened. Absent: the writer's configured lifetime, `EVENT_PROPOSALS_EXPIRY` (72h by default). Refused when mode is `never`. When several templates of one event ask approval, the proposal expires after the smallest proposal_ttl that those templates state, else after the writer's configured lifetime. The writer expires a proposal no later than the event's occur_time plus the writer's age limit for the event's directives, less a margin, whichever comes first.",
+        "proposal_ttl_millis": {
+          "type": "integer",
+          "minimum": 3600000,
+          "maximum": 604800000,
+          "multipleOf": 3600000,
+          "description": "How long a proposal may wait for approval, counted from its creation, in milliseconds: a whole number of hours from 1 hour (3600000) to 168 hours (604800000). 168 hours is the writer's maximum proposal lifetime, so a longer value is refused, never shortened. Absent: the writer's configured lifetime, `EVENT_PROPOSALS_EXPIRY` (72 hours by default). Refused when mode is `never`. When several templates of one event ask approval, the proposal expires after the smallest proposal_ttl_millis that those templates state, else after the writer's configured lifetime. The writer expires a proposal no later than the event's occur_time plus the writer's age limit for the event's directives, less a margin, whichever comes first.",
           "examples": [
-            "72h",
-            "7d"
+            259200000,
+            604800000
           ]
         }
       },
@@ -188,7 +189,7 @@
           "then": {
             "not": {
               "required": [
-                "proposal_ttl"
+                "proposal_ttl_millis"
               ]
             }
           },
@@ -729,7 +730,7 @@
       "execution_approval": {
         "mode": "always",
         "description": "Exchanges wait for a second person before they post.",
-        "proposal_ttl": "7d"
+        "proposal_ttl_millis": 604800000
       },
       "account_code_validations": [
         {
