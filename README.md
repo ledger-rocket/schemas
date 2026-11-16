@@ -72,6 +72,7 @@ An event that names `domain/v2.0.0/event.schema.json` in `$schema` follows v2.0.
 | expected transfer `debit_account_name`, `credit_account_name` | `debit_account_display_name`, `credit_account_display_name` | at most 255 characters |
 | template `variables[].name`, `validations[].name` | `key` | unchanged pattern |
 | template `execution_approval.proposal_ttl` (`"72h"`, `"7d"`) | `execution_approval.proposal_ttl_millis` | integer milliseconds, a whole number of hours from 3600000 to 604800000 |
+| template 7010 example metadata `quote_expires_at` | `quote_expire_time` | as `occur_time` |
 
 `$defs/unixTimestamp` is `$defs/timestamp` in v2.0.0, `$defs/positiveAmount` and `$defs/nonNegativeAmount` are integer strings, and `$defs/displayName` is new.
 The fixtures under `tests/v2.0.0/` and the root `examples` of the v2.0.0 schemas are checked in CI by `.github/scripts/check_instances.py`.
