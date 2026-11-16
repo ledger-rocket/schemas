@@ -260,27 +260,27 @@
       ]
     },
     "positiveAmount": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 9223372036854775807,
-      "description": "Positive amount in minor currency units",
-      "$comment": "Must be positive integer, no decimals allowed",
+      "type": "string",
+      "pattern": "^([1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-6]|9223372036854775807)$",
+      "maxLength": 19,
+      "description": "Positive amount in minor currency units, as an integer string: digits only, no sign, no leading zero, at most 9223372036854775807, the int64 maximum",
+      "$comment": "Must be a positive integer string, no decimals allowed",
       "examples": [
-        5000,
-        10000,
-        250000
+        "5000",
+        "10000",
+        "250000"
       ]
     },
     "nonNegativeAmount": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 9223372036854775807,
-      "description": "Non-negative amount in minor currency units; zero is only meaningful where an explicit contract (e.g. the event 'zero_amount' directive) permits it",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-6]|9223372036854775807)$",
+      "maxLength": 19,
+      "description": "Non-negative amount in minor currency units, as an integer string: digits only, no sign, no leading zero, at most 9223372036854775807, the int64 maximum; zero is only meaningful where an explicit contract (e.g. the event 'zero_amount' directive) permits it",
       "$comment": "Zero allowed; pair with a conditional rule so zero is never accepted silently",
       "examples": [
-        0,
-        5000,
-        250000
+        "0",
+        "5000",
+        "250000"
       ]
     },
     "eventSource": {
