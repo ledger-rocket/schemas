@@ -401,6 +401,12 @@
         "fee_revenue",
         "revaluation_fx"
       ]
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Human-readable label, at most 255 characters"
     }
   },
   "version": "2.0.0"

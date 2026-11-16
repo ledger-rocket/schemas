@@ -16,9 +16,9 @@
       "format": "uuid",
       "description": "Debit account UUID"
     },
-    "debit_account_name": {
+    "debit_account_display_name": {
       "type": "string",
-      "maxLength": 200,
+      "maxLength": 255,
       "description": "Human-readable account name"
     },
     "debit_account_code": {
@@ -33,9 +33,9 @@
       "format": "uuid",
       "description": "Credit account UUID"
     },
-    "credit_account_name": {
+    "credit_account_display_name": {
       "type": "string",
-      "maxLength": 200,
+      "maxLength": 255,
       "description": "Human-readable account name"
     },
     "credit_account_code": {
@@ -65,11 +65,11 @@
   "examples": [
     {
       "debit_account_id": "01920000-0000-7000-8000-000000000001",
-      "debit_account_name": "Customer Checking",
+      "debit_account_display_name": "Customer Checking",
       "debit_account_code": "2100",
       "debit_account_type": "ASSET",
       "credit_account_id": "01920000-0000-7000-8000-000000000002",
-      "credit_account_name": "Merchant Settlement",
+      "credit_account_display_name": "Merchant Settlement",
       "credit_account_code": "2200",
       "credit_account_type": "ASSET",
       "amount_minor": "5000",
@@ -78,11 +78,11 @@
     },
     {
       "debit_account_id": "01920000-0000-7000-8000-000000000001",
-      "debit_account_name": "Customer Checking",
+      "debit_account_display_name": "Customer Checking",
       "debit_account_code": "2100",
       "debit_account_type": "ASSET",
       "credit_account_id": "01920000-0000-7000-8000-00000000000f",
-      "credit_account_name": "Fee Income",
+      "credit_account_display_name": "Fee Income",
       "credit_account_code": "4000",
       "credit_account_type": "REVENUE",
       "amount_minor": "25",

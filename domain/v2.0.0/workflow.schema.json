@@ -9,7 +9,7 @@
     "workflow_id",
     "code",
     "site_id",
-    "name",
+    "display_name",
     "description",
     "accounting_treatment",
     "category",
@@ -43,8 +43,8 @@
     "site_id": {
       "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/siteId"
     },
-    "name": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/shortString",
+    "display_name": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/displayName",
       "description": "Human-readable name",
       "examples": [
         "Cross-Border Payment Flow",

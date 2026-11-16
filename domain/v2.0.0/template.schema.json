@@ -8,7 +8,7 @@
     "$schema",
     "template_id",
     "site_id",
-    "name",
+    "display_name",
     "description",
     "trigger",
     "accounting_treatments",
@@ -38,8 +38,8 @@
     "site_id": {
       "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/siteId"
     },
-    "name": {
-      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/shortString",
+    "display_name": {
+      "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/displayName",
       "description": "Human-readable name for the template",
       "examples": [
         "Cross-Border Payment via Nostro/Vostro",
@@ -640,15 +640,13 @@
       "items": {
         "type": "object",
         "required": [
-          "name",
+          "display_name",
           "event_request",
           "expected_transfers"
         ],
         "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 200,
+          "display_name": {
+            "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/displayName",
             "description": "Name of the example scenario",
             "examples": [
               "Standard transfer",
@@ -718,7 +716,7 @@
       "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/template.schema.json",
       "template_id": 7010,
       "site_id": 1,
-      "name": "Retail GBP/EUR Exchange",
+      "display_name": "Retail GBP/EUR Exchange",
       "product": "FX",
       "event_type": "CURRENCY_EXCHANGE",
       "category": "RETAIL_FX",
@@ -1071,7 +1069,7 @@
       },
       "examples": [
         {
-          "name": "Standard plan in the app: GBP to EUR",
+          "display_name": "Standard plan in the app: GBP to EUR",
           "description": "Sells GBP 1,000.00 at 1.1650 for EUR 1,165.00. GBP 400.00 of allowance is left, so the 0.5% fee applies to GBP 600.00: GBP 3.00, booked as app FX income.",
           "event_request": {
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
@@ -1133,7 +1131,7 @@
           ]
         },
         {
-          "name": "Standard plan in the app: EUR to GBP",
+          "display_name": "Standard plan in the app: EUR to GBP",
           "description": "Sells EUR 500.00 at 0.8580 for GBP 429.00. No allowance is left, so the 0.5% fee applies to the whole amount: EUR 2.50, booked on the EUR ledger.",
           "event_request": {
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
@@ -1195,7 +1193,7 @@
           ]
         },
         {
-          "name": "Plus plan in a partner app: GBP 12,000 to EUR",
+          "display_name": "Plus plan in a partner app: GBP 12,000 to EUR",
           "description": "Sells GBP 12,000.00 at 1.1650 for EUR 13,980.00. The 0.35% rate applies from 5,000.00. GBP 1,000.00 of allowance is left, so the fee is GBP 38.50, booked as partner-app FX income.",
           "event_request": {
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
@@ -1257,7 +1255,7 @@
           ]
         },
         {
-          "name": "Standard plan in a partner app: EUR 30,000 to GBP",
+          "display_name": "Standard plan in a partner app: EUR 30,000 to GBP",
           "description": "Sells EUR 30,000.00 at 0.8580 for GBP 25,740.00. The 0.25% rate applies from 25,000.00, so the fee is EUR 75.00, booked as partner-app FX income on the EUR ledger.",
           "event_request": {
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
@@ -1319,7 +1317,7 @@
           ]
         },
         {
-          "name": "Premium plan, no fee: GBP to EUR",
+          "display_name": "Premium plan, no fee: GBP to EUR",
           "description": "Sells GBP 2,500.00 at 1.1650 for EUR 2,912.50. Premium pays no fair-usage fee, so no fee leg runs.",
           "event_request": {
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
@@ -1375,7 +1373,7 @@
           ]
         },
         {
-          "name": "Standard plan with a waived fee: GBP to EUR",
+          "display_name": "Standard plan with a waived fee: GBP to EUR",
           "description": "Sells GBP 800.00 at 1.1650 for EUR 932.00. The fee would be GBP 4.00, but the event carries a promotion waiver, so no fee leg runs.",
           "event_request": {
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
