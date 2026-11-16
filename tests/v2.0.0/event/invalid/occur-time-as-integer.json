@@ -1,0 +1,8 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "occur_time": 1700746200000
+  },
+  "keyword": "type",
+  "path": "$.occur_time"
+}

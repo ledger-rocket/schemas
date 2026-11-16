@@ -1,0 +1,8 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json"
+  },
+  "keyword": "enum",
+  "path": "$['$schema']"
+}

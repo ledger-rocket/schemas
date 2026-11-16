@@ -1,0 +1,11 @@
+{
+  "base": "approval-conditional.json",
+  "set": {
+    "execution_approval": {
+      "mode": "conditional",
+      "description": "Exchanges of 10,000.00 or more of the sold currency wait for a second person."
+    }
+  },
+  "keyword": "required",
+  "path": "$.execution_approval"
+}

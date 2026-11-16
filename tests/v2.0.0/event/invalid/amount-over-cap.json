@@ -1,0 +1,9 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "amount_minor": "9223372036854775808"
+  },
+  "keyword": "pattern",
+  "path": "$.amount_minor",
+  "count": 2
+}
