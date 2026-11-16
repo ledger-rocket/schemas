@@ -165,7 +165,7 @@
           "type": "string",
           "pattern": "^(([1-9]|[1-9][0-9]|1[0-5][0-9]|16[0-8])h|[1-7]d)$",
           "maxLength": 4,
-          "description": "How long a proposal may wait for approval, counted from its creation: 1h to 168h, or 1d to 7d. A day is 24 hours. 168 hours is the writer's maximum proposal lifetime, so a longer value is refused, never shortened. Absent: the writer's configured lifetime, `EVENT_PROPOSALS_EXPIRY` (72h by default). Refused when mode is `never`. When several templates of one event ask approval, the proposal expires after the smallest proposal_ttl that those templates state, else after the writer's configured lifetime. The writer expires a proposal no later than the event's occurred_at plus the writer's age limit for the event's directives, less a margin, whichever comes first.",
+          "description": "How long a proposal may wait for approval, counted from its creation: 1h to 168h, or 1d to 7d. A day is 24 hours. 168 hours is the writer's maximum proposal lifetime, so a longer value is refused, never shortened. Absent: the writer's configured lifetime, `EVENT_PROPOSALS_EXPIRY` (72h by default). Refused when mode is `never`. When several templates of one event ask approval, the proposal expires after the smallest proposal_ttl that those templates state, else after the writer's configured lifetime. The writer expires a proposal no later than the event's occur_time plus the writer's age limit for the event's directives, less a margin, whichever comes first.",
           "examples": [
             "72h",
             "7d"
@@ -922,7 +922,7 @@
         },
         {
           "name": "quote_still_valid",
-          "expression": "event.extra_metadata.quote_expires_at >= event.occurred_at",
+          "expression": "event.extra_metadata.quote_expires_at >= event.occur_time",
           "description": "The exchange must happen before the customer's quote expires."
         }
       ],
@@ -1078,7 +1078,7 @@
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
             "event_id": "01a0f6e8-ff60-7331-81db-33a057ac83d8",
             "site_id": 1,
-            "occurred_at": 1790848860000,
+            "occur_time": "2026-10-01T10:01:00.000Z",
             "amount": 100000,
             "event_source": "fx-service",
             "template_ids": [
@@ -1140,7 +1140,7 @@
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
             "event_id": "01a0f6ea-d420-75d1-9fe9-bf4956699de6",
             "site_id": 1,
-            "occurred_at": 1790848980000,
+            "occur_time": "2026-10-01T10:03:00.000Z",
             "amount": 50000,
             "event_source": "fx-service",
             "template_ids": [
@@ -1202,7 +1202,7 @@
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
             "event_id": "01a0f6eb-be80-70a4-948f-7fbfe3ffefad",
             "site_id": 1,
-            "occurred_at": 1790849040000,
+            "occur_time": "2026-10-01T10:04:00.000Z",
             "amount": 1200000,
             "event_source": "fx-service",
             "template_ids": [
@@ -1264,7 +1264,7 @@
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
             "event_id": "01a0f6ec-a8e0-73b7-a962-494a5a3c88a9",
             "site_id": 1,
-            "occurred_at": 1790849100000,
+            "occur_time": "2026-10-01T10:05:00.000Z",
             "amount": 3000000,
             "event_source": "fx-service",
             "template_ids": [
@@ -1326,7 +1326,7 @@
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
             "event_id": "01a0f6e9-e9c0-7d8b-b363-49f358ed970f",
             "site_id": 1,
-            "occurred_at": 1790848920000,
+            "occur_time": "2026-10-01T10:02:00.000Z",
             "amount": 250000,
             "event_source": "fx-service",
             "template_ids": [
@@ -1382,7 +1382,7 @@
             "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
             "event_id": "01a0f6ed-9340-7a3f-96d1-88605cc895f7",
             "site_id": 1,
-            "occurred_at": 1790849160000,
+            "occur_time": "2026-10-01T10:06:00.000Z",
             "amount": 80000,
             "event_source": "fx-service",
             "template_ids": [
