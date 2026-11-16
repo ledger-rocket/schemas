@@ -1017,10 +1017,9 @@
             "description": "Currency pair of the quote as ISO 4217 codes, sold then bought. This template books fees on the GBP and EUR ledgers only."
           },
           "quote_expire_time": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$",
-            "description": "Quote expiry as an RFC 3339 UTC instant with milliseconds; the exchange must occur at or before it."
+            "type": "integer",
+            "minimum": 0,
+            "description": "Quote expiry in Unix milliseconds; the exchange must occur at or before it."
           },
           "plan": {
             "type": "string",
@@ -1104,7 +1103,7 @@
             "extra_metadata": {
               "fx_rate": "1.1650",
               "rate_pair": "GBP/EUR",
-              "quote_expire_time": "2026-10-01T10:01:30.000Z",
+              "quote_expire_time": 1790848890000,
               "plan": "STANDARD",
               "fee_free_allowance_remaining": 40000,
               "channel": "APP",
@@ -1166,7 +1165,7 @@
             "extra_metadata": {
               "fx_rate": "0.8580",
               "rate_pair": "EUR/GBP",
-              "quote_expire_time": "2026-10-01T10:03:30.000Z",
+              "quote_expire_time": 1790849010000,
               "plan": "STANDARD",
               "fee_free_allowance_remaining": 0,
               "channel": "APP",
@@ -1228,7 +1227,7 @@
             "extra_metadata": {
               "fx_rate": "1.1650",
               "rate_pair": "GBP/EUR",
-              "quote_expire_time": "2026-10-01T10:04:30.000Z",
+              "quote_expire_time": 1790849070000,
               "plan": "PLUS",
               "fee_free_allowance_remaining": 100000,
               "channel": "PARTNER_API",
@@ -1290,7 +1289,7 @@
             "extra_metadata": {
               "fx_rate": "0.8580",
               "rate_pair": "EUR/GBP",
-              "quote_expire_time": "2026-10-01T10:05:30.000Z",
+              "quote_expire_time": 1790849130000,
               "plan": "STANDARD",
               "fee_free_allowance_remaining": 0,
               "channel": "PARTNER_API",
@@ -1352,7 +1351,7 @@
             "extra_metadata": {
               "fx_rate": "1.1650",
               "rate_pair": "GBP/EUR",
-              "quote_expire_time": "2026-10-01T10:02:30.000Z",
+              "quote_expire_time": 1790848950000,
               "plan": "PREMIUM",
               "fee_free_allowance_remaining": 0,
               "channel": "APP",
@@ -1408,7 +1407,7 @@
             "extra_metadata": {
               "fx_rate": "1.1650",
               "rate_pair": "GBP/EUR",
-              "quote_expire_time": "2026-10-01T10:06:30.000Z",
+              "quote_expire_time": 1790849190000,
               "plan": "STANDARD",
               "fee_free_allowance_remaining": 0,
               "channel": "APP",

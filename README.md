@@ -73,7 +73,10 @@ An event that names `domain/v2.0.0/event.schema.json` in `$schema` follows v2.0.
 | template `variables[].name`, `validations[].name` | `key` | unchanged pattern |
 | template `execution_approval.proposal_ttl` (`"72h"`, `"7d"`) | `execution_approval.proposal_ttl_millis` | integer milliseconds, a whole number of hours from 3600000 to 604800000 |
 | values of event `directives`, template `capabilities` and `execution_approval.mode`, `$defs/treatmentType`, `$defs/financialImpact` and `$defs/modelName` (`seed_mode`, `never`, `cash_movement`) | unchanged field names | UPPER_SNAKE values (`SEED_MODE`, `NEVER`, `CASH_MOVEMENT`) |
-| template 7010 example metadata `quote_expires_at` | `quote_expire_time` | as `occur_time` |
+| template 7010 example metadata `quote_expires_at` | `quote_expire_time` | unchanged: integer Unix milliseconds |
+
+Inside template CEL, `amount_minor` and every instant, such as `event.occur_time`, are integers (minor units, Unix milliseconds), as in v1: only the names change.
+The engine parses the wire string once at the boundary, `extra_metadata` instants stay integer milliseconds, and CEL has no timestamp type or `timestamp(...)` call here (owner decision, Eralp, 2026-11-16).
 
 `$defs/unixTimestamp` is `$defs/timestamp` in v2.0.0, `$defs/positiveAmount` and `$defs/nonNegativeAmount` are integer strings, and `$defs/displayName` is new.
 The fixtures under `tests/v2.0.0/` and the root `examples` of the v2.0.0 schemas are checked in CI by `.github/scripts/check_instances.py`.
