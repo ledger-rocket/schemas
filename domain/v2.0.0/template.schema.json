@@ -370,14 +370,14 @@
       "items": {
         "type": "object",
         "required": [
-          "name",
+          "key",
           "value",
           "description"
         ],
         "properties": {
-          "name": {
+          "key": {
             "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/variableName",
-            "description": "Variable name used in legs and other expressions"
+            "description": "Variable key used in legs and other expressions"
           },
           "value": {
             "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/celExpression",
@@ -423,14 +423,14 @@
       "items": {
         "type": "object",
         "required": [
-          "name",
+          "key",
           "expression",
           "description"
         ],
         "properties": {
-          "name": {
+          "key": {
             "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/variableName",
-            "description": "Validation rule name",
+            "description": "Validation rule key",
             "examples": [
               "minimum_amount",
               "same_currency",
@@ -822,103 +822,103 @@
       },
       "variables": [
         {
-          "name": "sell_currency",
+          "key": "sell_currency",
           "value": "accounts.customer_source_liability.ledger.currency_code",
           "description": "Currency the customer sells. The fee is booked on this currency's ledger."
         },
         {
-          "name": "buy_amount",
+          "key": "buy_amount",
           "value": "convert(amount_minor, sell_currency, accounts.customer_target_liability.ledger.currency_code, event.extra_metadata.fx_rate)",
           "description": "Amount the customer receives, in minor units of the bought currency, at the quoted rate.",
           "type": "integer",
           "export": true
         },
         {
-          "name": "chargeable_amount",
+          "key": "chargeable_amount",
           "value": "event.extra_metadata.plan in ['STANDARD', 'PLUS'] ? max(0, amount_minor - event.extra_metadata.fee_free_allowance_remaining) : 0",
           "description": "Part of the sold amount above the plan's remaining fee-free allowance; zero on plans without the fee."
         },
         {
-          "name": "fee_rate_bps",
+          "key": "fee_rate_bps",
           "value": "amount_minor >= 2500000 ? 25 : (amount_minor >= 500000 ? 35 : 50)",
           "description": "Fee rate in basis points, by the size of the exchange: 0.5% below 5,000.00, 0.35% from 5,000.00, 0.25% from 25,000.00 of the sold currency."
         },
         {
-          "name": "fx_fee",
+          "key": "fx_fee",
           "value": "has(event.extra_metadata.fee_waiver_reason) ? 0 : divide_with_bankers_rounding(chargeable_amount * fee_rate_bps, 10000)",
           "description": "Fair-usage fee in minor units of the sold currency, rounded half to even; zero when the event carries a fee waiver.",
           "type": "integer",
           "export": true
         },
         {
-          "name": "via_partner_app",
+          "key": "via_partner_app",
           "value": "event.extra_metadata.channel == 'PARTNER_API'",
           "description": "True when a partner app started the exchange through the Northstar API."
         },
         {
-          "name": "apply_fee_app_gbp",
+          "key": "apply_fee_app_gbp",
           "value": "fx_fee > 0 && !via_partner_app && sell_currency == 'GBP'",
           "description": "A GBP fee is due on an exchange made in the Northstar app."
         },
         {
-          "name": "apply_fee_app_eur",
+          "key": "apply_fee_app_eur",
           "value": "fx_fee > 0 && !via_partner_app && sell_currency == 'EUR'",
           "description": "A EUR fee is due on an exchange made in the Northstar app."
         },
         {
-          "name": "apply_fee_partner_gbp",
+          "key": "apply_fee_partner_gbp",
           "value": "fx_fee > 0 && via_partner_app && sell_currency == 'GBP'",
           "description": "A GBP fee is due on an exchange made in a partner app."
         },
         {
-          "name": "apply_fee_partner_eur",
+          "key": "apply_fee_partner_eur",
           "value": "fx_fee > 0 && via_partner_app && sell_currency == 'EUR'",
           "description": "A EUR fee is due on an exchange made in a partner app."
         },
         {
-          "name": "fx_fee_revenue_app_gbp",
+          "key": "fx_fee_revenue_app_gbp",
           "value": "\"299b5d48-95e9-50c1-aa0d-25cb811c4019\"",
           "description": "FX trading income - GBP, UK: fees on exchanges made in the Northstar app."
         },
         {
-          "name": "fx_fee_revenue_app_eur",
+          "key": "fx_fee_revenue_app_eur",
           "value": "\"a35e0f15-f384-567c-89ba-90228102b57f\"",
           "description": "FX trading income - EUR, UK: fees on exchanges made in the Northstar app."
         },
         {
-          "name": "fx_fee_revenue_partner_gbp",
+          "key": "fx_fee_revenue_partner_gbp",
           "value": "\"350dbc3d-cfad-5342-b262-69287247f9d4\"",
           "description": "FX trading income, partner apps - GBP, UK: fees on exchanges made in partner apps."
         },
         {
-          "name": "fx_fee_revenue_partner_eur",
+          "key": "fx_fee_revenue_partner_eur",
           "value": "\"84f2142b-9069-5a17-bda8-93eea7fae510\"",
           "description": "FX trading income, partner apps - EUR, UK: fees on exchanges made in partner apps."
         }
       ],
       "validations": [
         {
-          "name": "currencies_differ",
+          "key": "currencies_differ",
           "expression": "sell_currency != accounts.customer_target_liability.ledger.currency_code",
           "description": "An exchange must sell one currency and buy another."
         },
         {
-          "name": "customer_owns_both_accounts",
+          "key": "customer_owns_both_accounts",
           "expression": "accounts.customer_source_liability.entity_id == accounts.customer_target_liability.entity_id",
           "description": "Customers exchange only between their own accounts."
         },
         {
-          "name": "fx_hub_owns_both_vostros",
+          "key": "fx_hub_owns_both_vostros",
           "expression": "accounts.fx_hub_vostro_source.entity_id == accounts.fx_hub_vostro_target.entity_id",
           "description": "Both sides of the exchange sit with the same group entity."
         },
         {
-          "name": "rate_quoted_for_this_pair",
+          "key": "rate_quoted_for_this_pair",
           "expression": "split_nth(event.extra_metadata.rate_pair, '/', 0) == sell_currency && split_nth(event.extra_metadata.rate_pair, '/', 1) == accounts.customer_target_liability.ledger.currency_code",
           "description": "The quoted rate must be for the currencies being exchanged, sold then bought."
         },
         {
-          "name": "quote_still_valid",
+          "key": "quote_still_valid",
           "expression": "event.extra_metadata.quote_expires_at >= event.occur_time",
           "description": "The exchange must happen before the customer's quote expires."
         }
