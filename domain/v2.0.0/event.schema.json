@@ -37,7 +37,7 @@
       "$ref": "https://ledger-rocket.github.io/schemas/common/v2.0.0/defs.schema.json#/$defs/uuidV7",
       "description": "UUID v7 for idempotency and natural time ordering",
       "examples": [
-        "550e8400-e29b-41d4-a716-446655440000"
+        "0192e4d8-7b23-7f89-a123-456789abcd01"
       ]
     },
     "template_ids": {
@@ -264,7 +264,7 @@
     {
       "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
       "event_source": "payment-gateway",
-      "event_id": "550e8400-e29b-41d4-a716-446655440000",
+      "event_id": "0192e4d8-7b23-7f89-a123-456789abcd01",
       "template_ids": [
         132
       ],
@@ -274,15 +274,15 @@
       "accounts": [
         {
           "purpose": "from",
-          "account_id": "account-uuid-1"
+          "account_id": "0192e4d8-7b23-7f89-a123-4567890000a1"
         },
         {
           "purpose": "to",
-          "account_id": "account-uuid-2"
+          "account_id": "0192e4d8-7b23-7f89-a123-4567890000a2"
         },
         {
           "purpose": "fee",
-          "account_id": "fee-account-uuid"
+          "account_id": "0192e4d8-7b23-7f89-a123-4567890000a3"
         }
       ],
       "extra_metadata": {
@@ -295,7 +295,7 @@
     {
       "$schema": "https://ledger-rocket.github.io/schemas/domain/v2.0.0/event.schema.json",
       "event_source": "mobile-app",
-      "event_id": "660e8400-e29b-41d4-a716-446655440001",
+      "event_id": "0192e4d8-7b23-7f89-a123-456789abcd02",
       "template_ids": [
         132,
         145
@@ -306,11 +306,11 @@
       "accounts": [
         {
           "purpose": "from",
-          "account_id": "account-uuid-3"
+          "account_id": "0192e4d8-7b23-7f89-a123-4567890000a4"
         },
         {
           "purpose": "to",
-          "account_id": "account-uuid-4"
+          "account_id": "0192e4d8-7b23-7f89-a123-4567890000a5"
         }
       ],
       "extra_metadata": {
