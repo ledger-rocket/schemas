@@ -143,15 +143,15 @@
         [
           {
             "purpose": "from",
-            "account_id": "account-uuid-1"
+            "account_id": "0192e4d8-7b23-7f89-a123-4567890000a1"
           },
           {
             "purpose": "to",
-            "account_id": "account-uuid-2"
+            "account_id": "0192e4d8-7b23-7f89-a123-4567890000a2"
           },
           {
             "purpose": "fee",
-            "account_id": "fee-account-uuid"
+            "account_id": "0192e4d8-7b23-7f89-a123-4567890000a3"
           }
         ],
         [
