@@ -60,14 +60,15 @@ domain/v2.0.0/expected-transfer.schema.json
 Each v2.0.0 file has its own `$id` under `v2.0.0/`, and every `$ref` in it names a v2.0.0 URL.
 The unversioned files and the v1.0.0 copies stay on v1, so v1 readers do not change.
 The v1.0.0 copies `$ref` the unversioned files, so the unversioned files move to v2 only after the last v1 reader moves.
-An event that names `domain/v2.0.0/event.schema.json` in `$schema` follows v2.0.0; the v2.0.0 event schema accepts no other `$schema` value.
+The v2.0.0 event schema accepts the three published event URLs in `$schema` (unversioned, v1.0.0, v2.0.0): the Event Service accepts each of them as a label and holds the body to the v2.0.0 shape. New writers name `domain/v2.0.0/event.schema.json`.
 
 | v1 field | v2.0.0 field | v2.0.0 value |
 | --- | --- | --- |
 | event `amount`, expected transfer `amount` | `amount_minor` | integer string in minor units: digits only, no sign, no leading zero, at most 9223372036854775807 |
 | template `legs[].amount` | `legs[].amount_minor` | a reference, or a literal integer string as above |
 | event `occurred_at` | `occur_time` | RFC 3339 UTC with `Z` and exactly 3 fraction digits, such as `2023-11-23T13:30:00.000Z` |
-| event `ledger_timestamp` | `ledger_time` | as `occur_time`, not before `1970-01-01T00:00:00.000Z` |
+| event `ledger_timestamp` | `post_time` | as `occur_time`, not before `1970-01-01T00:00:00.000Z` |
+| event `is_reversal` | `reversal` | boolean, unchanged |
 | template `name`, template `examples[].name`, workflow `name` | `display_name` | 1 to 255 characters |
 | expected transfer `debit_account_name`, `credit_account_name` | `debit_account_display_name`, `credit_account_display_name` | at most 255 characters |
 | template `variables[].name`, `validations[].name` | `key` | unchanged pattern |

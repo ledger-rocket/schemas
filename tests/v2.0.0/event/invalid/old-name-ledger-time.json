@@ -1,0 +1,8 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "ledger_time": "2023-11-23T13:30:00.123Z"
+  },
+  "keyword": "additionalProperties",
+  "path": "$"
+}

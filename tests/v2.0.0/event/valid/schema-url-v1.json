@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/event.schema.json",
+  "event_source": "payment-gateway",
+  "event_id": "0192e4d8-7b23-7f89-a123-456789abcd01",
+  "template_ids": [
+    132
+  ],
+  "site_id": 1,
+  "amount_minor": "5000",
+  "occur_time": "2023-11-23T13:30:00.000Z",
+  "accounts": [
+    {
+      "purpose": "from",
+      "account_id": "0192e4d8-7b23-7f89-a123-456789abcd02"
+    },
+    {
+      "purpose": "to",
+      "account_id": "0192e4d8-7b23-7f89-a123-456789abcd03"
+    }
+  ],
+  "extra_metadata": {
+    "reference": "INV-2024-001"
+  }
+}
