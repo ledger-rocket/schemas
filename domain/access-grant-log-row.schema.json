@@ -32,12 +32,8 @@
   ],
   "properties": {
     "$schema": {
-      "type": "string",
-      "enum": [
-        "https://ledger-rocket.github.io/schemas/domain/access-grant-log-row.schema.json",
-        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-log-row.schema.json"
-      ],
-      "description": "Published URL of the schema that describes this row object: the latest schema or the frozen v1.0.0 copy"
+      "const": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-log-row.schema.json",
+      "description": "Published URL of the frozen schema version that describes this row object. A stored object keeps it for its whole retention, so it never names the latest URL, which a later version replaces."
     },
     "log_id": {"$ref": "#/$defs/decimal"},
     "chain_seq": {"$ref": "#/$defs/positiveDecimal"},
@@ -85,10 +81,25 @@
         }
       },
       "else": {
+        "description": "Version 2: each document and its canonical bytes are both set or both null, a document holds no JSON number (canonical_v2 refuses them), the revision is set, and an approver is a principal.",
         "properties": {
-          "before": {"type": ["object", "null"]},
-          "after": {"type": ["object", "null"]}
-        }
+          "revision": {"$ref": "#/$defs/decimal"},
+          "approver_subject": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "\\S", "maxLength": 255}]}
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {"properties": {"before": {"type": "null"}, "before_canonical": {"type": "null"}}},
+              {"properties": {"before": {"$ref": "#/$defs/noNumberObject"}, "before_canonical": {"$ref": "#/$defs/canonicalHex"}}}
+            ]
+          },
+          {
+            "oneOf": [
+              {"properties": {"after": {"type": "null"}, "after_canonical": {"type": "null"}}},
+              {"properties": {"after": {"$ref": "#/$defs/noNumberObject"}, "after_canonical": {"$ref": "#/$defs/canonicalHex"}}}
+            ]
+          }
+        ]
       }
     }
   ],
@@ -96,6 +107,19 @@
     "decimal": {"type": "string", "pattern": "^(0|[1-9][0-9]{0,18})$"},
     "positiveDecimal": {"type": "string", "pattern": "^[1-9][0-9]{0,18}$"},
     "sha256Hex": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "hex": {"type": "string", "pattern": "^([0-9a-f]{2})*$"}
+    "hex": {"type": "string", "pattern": "^([0-9a-f]{2})*$"},
+    "canonicalHex": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{2}){2,}$",
+      "description": "The canonical bytes of a version 2 document as hex; the shortest document, {}, is 2 bytes"
+    },
+    "noNumber": {
+      "oneOf": [
+        {"type": ["null", "boolean", "string"]},
+        {"type": "array", "items": {"$ref": "#/$defs/noNumber"}},
+        {"$ref": "#/$defs/noNumberObject"}
+      ]
+    },
+    "noNumberObject": {"type": "object", "additionalProperties": {"$ref": "#/$defs/noNumber"}}
   }
 }

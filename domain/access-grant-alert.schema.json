@@ -8,12 +8,8 @@
   "required": ["$schema", "kind", "database_generation"],
   "properties": {
     "$schema": {
-      "type": "string",
-      "enum": [
-        "https://ledger-rocket.github.io/schemas/domain/access-grant-alert.schema.json",
-        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-alert.schema.json"
-      ],
-      "description": "Published URL of the schema that describes this alert: the latest schema or the frozen v1.0.0 copy"
+      "const": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-alert.schema.json",
+      "description": "Published URL of the frozen schema version that describes this alert; the latest URL, which a later version replaces, is never named"
     },
     "kind": {"type": "string", "enum": ["grant-log-row", "export-stop-cleared"]},
     "database_generation": {"$ref": "#/$defs/uuid"}
@@ -34,7 +30,7 @@
         "actor_issuer_id": {"type": "integer", "minimum": 0},
         "actor_subject": {"type": "string", "minLength": 1, "maxLength": 255},
         "created_at_ms": {"type": "integer", "minimum": 0},
-        "object_key": {"type": "string", "pattern": "^access-grant-log/[0-9a-f-]{36}/[0-9]{20}\\.json$"}
+        "object_key": {"type": "string", "pattern": "^access-grant-log/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9]{20}\\.json$"}
       }
     },
     {
@@ -44,7 +40,7 @@
         "$schema": true,
         "database_generation": true,
         "kind": {"const": "export-stop-cleared"},
-        "stopped_reason": {"type": "string", "minLength": 1},
+        "stopped_reason": {"type": "string", "minLength": 1, "maxLength": 4096, "description": "The stop reason, at most 4,096 characters; a longer reason is cut and ends with its full length"},
         "stopped_at_ms": {"type": ["integer", "null"], "minimum": 0},
         "cleared_reason": {"type": "string", "minLength": 1},
         "cleared_by": {"type": "string", "minLength": 1},

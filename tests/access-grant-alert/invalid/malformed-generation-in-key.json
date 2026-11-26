@@ -1,0 +1,8 @@
+{
+  "base": "grant-log-row.json",
+  "set": {
+    "object_key": "access-grant-log/------------------------------------/00000000000000000007.json"
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

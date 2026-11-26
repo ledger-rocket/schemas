@@ -1,0 +1,8 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "chain_seq": 7
+  },
+  "keyword": "type",
+  "path": "$.chain_seq"
+}
