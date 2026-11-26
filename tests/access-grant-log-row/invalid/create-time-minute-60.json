@@ -1,0 +1,7 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "create_time": "2026-01-01T12:60:00.123Z"
+  },
+  "errors": [["format", "$.create_time"], ["pattern", "$.create_time"]]
+}

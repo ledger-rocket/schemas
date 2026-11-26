@@ -22,7 +22,7 @@ import re
 import sys
 from pathlib import Path
 
-from jsonschema import Draft202012Validator, FormatChecker
+from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
@@ -78,7 +78,7 @@ def main() -> int:
             uri=docs[path]["$id"],
             resource=Resource.from_contents(docs[path], default_specification=DRAFT202012),
         )
-    format_checker = FormatChecker()
+    format_checker = Draft202012Validator.FORMAT_CHECKER
     if "date-time" not in format_checker.checkers:
         # jsonschema registers date-time only when rfc3339-validator imports; without it
         # the format suites would pass every impossible date.
@@ -128,9 +128,15 @@ def check_suite(validator, folder, valid, invalid) -> list[str]:
     for path in invalid:
         case = load(path)
         if "errors" in case:
+            if "keyword" in case or "count" in case or len({tuple(e) for e in case["errors"]}) < 2:
+                failures.append(f"{path}: errors must stand alone and list two or more different errors")
+                continue
             want = sorted(case["errors"])
         else:
             want = [[case["keyword"], case["path"]]] * case.get("count", 1)
+        if not want:
+            failures.append(f"{path}: an invalid case must expect at least one error")
+            continue
         if (found := errors({**load(folder / "valid" / case["base"]), **case["set"]})) != want:
             failures.append(f"{path}: expected {want}, got {found}")
     return failures
