@@ -1,0 +1,8 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "amount_minor": "0"
+  },
+  "keyword": "pattern",
+  "path": "$.amount_minor"
+}

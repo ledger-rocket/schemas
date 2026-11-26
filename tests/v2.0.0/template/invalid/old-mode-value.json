@@ -1,0 +1,11 @@
+{
+  "base": "approval-always.json",
+  "set": {
+    "execution_approval": {
+      "mode": "always",
+      "description": "Exchanges wait for a second person before they post."
+    }
+  },
+  "keyword": "enum",
+  "path": "$.execution_approval.mode"
+}

@@ -1,0 +1,8 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "occurred_at": 1700746200000
+  },
+  "keyword": "additionalProperties",
+  "path": "$"
+}

@@ -1,0 +1,11 @@
+{
+  "base": "approval-always.json",
+  "set": {
+    "execution_approval": {
+      "mode": "ALWAYS",
+      "proposal_ttl_millis": 604800000
+    }
+  },
+  "keyword": "required",
+  "path": "$.execution_approval"
+}

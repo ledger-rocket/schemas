@@ -1,0 +1,10 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "directives": [
+      "ZERO_AMOUNT"
+    ]
+  },
+  "keyword": "const",
+  "path": "$.amount_minor"
+}
