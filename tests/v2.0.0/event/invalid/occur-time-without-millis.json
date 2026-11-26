@@ -1,0 +1,8 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "occur_time": "2023-11-23T13:30:00Z"
+  },
+  "keyword": "pattern",
+  "path": "$.occur_time"
+}

@@ -1,0 +1,8 @@
+{
+  "base": "approval-always.json",
+  "keyword": "additionalProperties",
+  "path": "$",
+  "set": {
+    "name": "Transfer with approval"
+  }
+}

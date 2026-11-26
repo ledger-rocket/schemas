@@ -1,0 +1,8 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "amount": 5000
+  },
+  "keyword": "additionalProperties",
+  "path": "$"
+}

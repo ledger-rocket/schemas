@@ -1,0 +1,10 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "directives": [
+      "seed_mode"
+    ]
+  },
+  "keyword": "enum",
+  "path": "$.directives[0]"
+}

@@ -1,0 +1,8 @@
+{
+  "base": "transfer.json",
+  "set": {
+    "post_time": "1969-12-31T23:59:59.999Z"
+  },
+  "keyword": "pattern",
+  "path": "$.post_time"
+}
