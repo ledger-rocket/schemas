@@ -1,9 +1,8 @@
 {
-  "base": "version-2.json",
+  "base": "version-2-update.json",
   "set": {
-    "approver_issuer_id": "2",
     "approver_subject": " "
   },
   "keyword": "oneOf",
-  "path": "$.approver_subject"
+  "path": "$"
 }

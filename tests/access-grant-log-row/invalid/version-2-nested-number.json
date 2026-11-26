@@ -1,0 +1,16 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "after": {
+      "issuer_id": "3",
+      "subject_claim": "sub",
+      "seen": [
+        {
+          "count": 1
+        }
+      ]
+    }
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

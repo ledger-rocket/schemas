@@ -81,12 +81,17 @@
         }
       },
       "else": {
-        "description": "Version 2: each document and its canonical bytes are both set or both null, a document holds no JSON number (canonical_v2 refuses them), the revision is set, and an approver is a principal.",
+        "description": "Version 2: each document and its canonical bytes are both set or both null, a document holds no JSON number (canonical_v2 refuses them), the revision is set, and an approver is absent or a principal: an issuer ID of at least 1 and a subject that is not blank.",
         "properties": {
-          "revision": {"$ref": "#/$defs/decimal"},
-          "approver_subject": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "\\S", "maxLength": 255}]}
+          "revision": {"$ref": "#/$defs/decimal"}
         },
         "allOf": [
+          {
+            "oneOf": [
+              {"properties": {"approver_issuer_id": {"type": "null"}, "approver_subject": {"type": "null"}}},
+              {"properties": {"approver_issuer_id": {"$ref": "#/$defs/positiveDecimal"}, "approver_subject": {"type": "string", "pattern": "\\S", "maxLength": 255}}}
+            ]
+          },
           {
             "oneOf": [
               {"properties": {"before": {"type": "null"}, "before_canonical": {"type": "null"}}},

@@ -1,0 +1,8 @@
+{
+  "base": "version-2-empty-document.json",
+  "set": {
+    "after_canonical": "7b"
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

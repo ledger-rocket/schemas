@@ -12,8 +12,10 @@ document (one root ``$id``, draft 2020-12, no nested ``$id`` rescoping refs).
 Those assumptions are asserted up front, so a future schema that breaks them
 fails loudly here rather than being resolved incorrectly.
 
-Frozen ``vX.Y.Z/`` copies intentionally reuse the ``$id`` of their latest
-sibling; that specific collision is allowed, any other ``$id`` reuse is not.
+Most frozen ``vX.Y.Z/`` copies reuse the ``$id`` of their latest sibling;
+that specific collision is allowed, any other ``$id`` reuse is not. A frozen
+copy may also carry its own versioned ``$id``, as the access-grant schemas
+do, so that one validator can load two versions of them.
 """
 
 from __future__ import annotations
@@ -103,7 +105,7 @@ def main() -> int:
             print(f"error: {line}", file=sys.stderr)
         return 1
 
-    # Frozen copies register first so the latest sibling wins each $id collision.
+    # Frozen copies register first so the latest sibling wins each shared $id.
     registry = Registry()
     for path in sorted(docs, key=lambda p: (0 if is_frozen_copy(p) else 1, p)):
         doc = docs[path]
