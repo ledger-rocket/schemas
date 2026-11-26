@@ -3,7 +3,7 @@
   "$id": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-alert.schema.json",
   "version": "1.0.0",
   "title": "AccessGrantAlert",
-  "description": "One ledger-service access-grant alert on the alerts SNS topic: a grant-log row with an alert, after its row object is in the audit store, or the clear of an export stop. Only version 2 rows raise an alert: the exporter publishes none for the rows that existed when it started, and every later row is version 2, so the grant-log-row fields follow the version 2 row rules. Plain JSON, integers as numbers. Delivery is at least once; consumers dedupe on kind, database_generation and chain_seq (or cleared_at_ms). The root $schema keyword names the JSON Schema dialect; the payload property $schema names this schema.",
+  "description": "One ledger-service access-grant alert on the alerts SNS topic: a grant-log row with an alert, after its row object is in the audit store, or the clear of an export stop. Only version 2 rows raise an alert: the exporter publishes none for the rows that existed when it started, and every later row is version 2, so the grant-log-row fields follow the version 2 row rules. Plain JSON, integers as numbers. Delivery is at least once; consumers dedupe on kind, database_generation and chain_seq (or clear_time). The root $schema keyword names the JSON Schema dialect; the payload property $schema names this schema.",
   "type": "object",
   "required": ["$schema", "kind", "database_generation"],
   "properties": {
@@ -11,17 +11,17 @@
       "const": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-alert.schema.json",
       "description": "Published URL of the frozen schema version that describes this alert; the latest URL, which a later version replaces, is never named"
     },
-    "kind": {"type": "string", "enum": ["grant-log-row", "export-stop-cleared"]},
+    "kind": {"type": "string", "enum": ["GRANT_LOG_ROW", "EXPORT_STOP_CLEARED"]},
     "database_generation": {"$ref": "#/$defs/uuid"}
   },
   "oneOf": [
     {
       "additionalProperties": false,
-      "required": ["chain_seq", "row_hash", "site_id", "change_type", "alert", "actor_issuer_id", "actor_subject", "created_at_ms", "object_key"],
+      "required": ["chain_seq", "row_hash", "site_id", "change_type", "alert", "actor_issuer_id", "actor_subject", "create_time", "object_key"],
       "properties": {
         "$schema": true,
         "database_generation": true,
-        "kind": {"const": "grant-log-row"},
+        "kind": {"const": "GRANT_LOG_ROW"},
         "chain_seq": {"type": "integer", "minimum": 1},
         "row_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "site_id": {"type": ["integer", "null"], "minimum": 1},
@@ -29,27 +29,33 @@
         "alert": {"type": "string", "minLength": 1},
         "actor_issuer_id": {"type": "integer", "minimum": 0},
         "actor_subject": {"type": "string", "minLength": 1, "maxLength": 255},
-        "created_at_ms": {"type": "integer", "minimum": 0},
+        "create_time": {"$ref": "#/$defs/timestamp"},
         "object_key": {"type": "string", "pattern": "^access-grant-log/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9]{20}\\.json$"}
       }
     },
     {
       "additionalProperties": false,
-      "required": ["stopped_reason", "stopped_at_ms", "cleared_reason", "cleared_by", "cleared_at_ms", "exported_chain_seq"],
+      "required": ["stopped_reason", "stop_time", "cleared_reason", "cleared_by", "clear_time", "exported_chain_seq"],
       "properties": {
         "$schema": true,
         "database_generation": true,
-        "kind": {"const": "export-stop-cleared"},
+        "kind": {"const": "EXPORT_STOP_CLEARED"},
         "stopped_reason": {"type": "string", "minLength": 1, "maxLength": 4096, "description": "The stop reason, at most 4,096 characters; a longer reason is cut and ends with its full length"},
-        "stopped_at_ms": {"type": ["integer", "null"], "minimum": 0},
+        "stop_time": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/timestamp"}]},
         "cleared_reason": {"type": "string", "minLength": 1},
         "cleared_by": {"type": "string", "minLength": 1},
-        "cleared_at_ms": {"type": "integer", "minimum": 0},
+        "clear_time": {"$ref": "#/$defs/timestamp"},
         "exported_chain_seq": {"type": "integer", "minimum": 0}
       }
     }
   ],
   "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$",
+      "description": "Instant as an RFC 3339 UTC timestamp with Z and exactly 3 fraction digits (milliseconds), the form of common/v2.0.0 $defs/timestamp"
+    },
     "uuid": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"}
   }
 }

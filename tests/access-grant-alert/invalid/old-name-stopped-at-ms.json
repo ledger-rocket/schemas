@@ -1,0 +1,8 @@
+{
+  "base": "export-stop-cleared.json",
+  "set": {
+    "stopped_at_ms": 1795089600123
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

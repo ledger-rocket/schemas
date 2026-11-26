@@ -1,0 +1,8 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "create_time": "2026-11-19T12:00:00.123+00:00"
+  },
+  "keyword": "pattern",
+  "path": "$.create_time"
+}
