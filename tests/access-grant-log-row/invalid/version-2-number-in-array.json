@@ -1,0 +1,15 @@
+{
+  "base": "version-2-assignment.json",
+  "set": {
+    "after": {
+      "all_access": true,
+      "group_ids": [
+        1
+      ],
+      "note": null,
+      "scope": {}
+    }
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

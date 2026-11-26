@@ -40,11 +40,11 @@
     "prev_hash": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256Hex"}]},
     "row_hash": {"$ref": "#/$defs/sha256Hex"},
     "hash_version": {"type": "string", "enum": ["1", "2"]},
-    "site_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/decimal"}]},
+    "site_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/signedDecimal"}]},
     "change_type": {"type": "string", "maxLength": 50},
-    "actor_issuer_id": {"$ref": "#/$defs/decimal"},
+    "actor_issuer_id": {"$ref": "#/$defs/signedDecimal"},
     "actor_subject": {"type": "string", "maxLength": 255},
-    "approver_issuer_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/decimal"}]},
+    "approver_issuer_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/signedDecimal"}]},
     "approver_subject": {"oneOf": [{"type": "null"}, {"type": "string", "maxLength": 255}]},
     "pending_change_id": {
       "oneOf": [
@@ -52,7 +52,7 @@
         {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"}
       ]
     },
-    "revision": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/decimal"}]},
+    "revision": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/signedDecimal"}]},
     "reason": {"type": "string", "description": "Empty on a version 1 row"},
     "alert": {"oneOf": [{"type": "null"}, {"type": "string"}]},
     "created_at_ms": {
@@ -79,10 +79,11 @@
         }
       },
       "else": {
-        "description": "Version 2, the rules the verifier checks before an upload: a site_id is at least 1, change_type, actor_subject and alert are not empty, each document and its canonical bytes are both set or both null, a document holds no JSON number (canonical_v2 refuses them), the revision is set, and an approver is absent or a principal: an issuer ID of at least 1 and a subject with a character outside Python's str.isspace set, the test the verifier applies (the character class of ck_access_grant_log_reason, so every regex engine agrees). Version 1 rows get only what the database holds, because the verifier checks their columns not at all.",
+        "description": "Version 2, the rules the verifier checks before an upload: a site_id is at least 1, actor_issuer_id and revision are not negative, change_type, actor_subject and alert are not empty, each document and its canonical bytes are both set or both null, a document holds no JSON number (canonical_v2 refuses them), the revision is set, and an approver is absent or a principal: an issuer ID of at least 1 and a subject with a character outside Python's str.isspace set, the test the verifier applies (the character class of ck_access_grant_log_reason, so every regex engine agrees). Version 1 rows get only what the database holds (signed integers, empty strings, a canonical value), because the verifier checks their columns not at all.",
         "properties": {
           "revision": {"$ref": "#/$defs/decimal"},
           "site_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/positiveDecimal"}]},
+          "actor_issuer_id": {"$ref": "#/$defs/decimal"},
           "change_type": {"minLength": 1},
           "actor_subject": {"minLength": 1},
           "alert": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1}]}
@@ -91,7 +92,7 @@
           {
             "oneOf": [
               {"properties": {"approver_issuer_id": {"type": "null"}, "approver_subject": {"type": "null"}}},
-              {"properties": {"approver_issuer_id": {"$ref": "#/$defs/positiveDecimal"}, "approver_subject": {"type": "string", "pattern": "[^\\u0009-\\u000d\\u001c-\\u0020\\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]", "maxLength": 255}}}
+              {"properties": {"approver_issuer_id": {"$ref": "#/$defs/positiveDecimal"}, "approver_subject": {"type": "string", "pattern": "[^\u0009-\u000d\u001c- \u0085   -     　]", "maxLength": 255}}}
             ]
           },
           {
@@ -112,6 +113,11 @@
   ],
   "$defs": {
     "decimal": {"type": "string", "pattern": "^(0|[1-9][0-9]{0,18})$"},
+    "signedDecimal": {
+      "type": "string",
+      "pattern": "^(0|-?[1-9][0-9]{0,18})$",
+      "description": "A signed integer column the database does not constrain; version 1 rows may hold any value"
+    },
     "positiveDecimal": {"type": "string", "pattern": "^[1-9][0-9]{0,18}$"},
     "sha256Hex": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "hex": {"type": "string", "pattern": "^([0-9a-f]{2})*$"},

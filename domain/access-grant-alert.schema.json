@@ -3,7 +3,7 @@
   "$id": "https://ledger-rocket.github.io/schemas/domain/access-grant-alert.schema.json",
   "version": "1.0.0",
   "title": "AccessGrantAlert",
-  "description": "One ledger-service access-grant alert on the alerts SNS topic: a grant-log row with an alert, after its row object is in the audit store, or the clear of an export stop. Plain JSON, integers as numbers. Delivery is at least once; consumers dedupe on kind, database_generation and chain_seq (or cleared_at_ms). The root $schema keyword names the JSON Schema dialect; the payload property $schema names this schema.",
+  "description": "One ledger-service access-grant alert on the alerts SNS topic: a grant-log row with an alert, after its row object is in the audit store, or the clear of an export stop. Only version 2 rows raise an alert: the exporter publishes none for the rows that existed when it started, and every later row is version 2, so the grant-log-row fields follow the version 2 row rules. Plain JSON, integers as numbers. Delivery is at least once; consumers dedupe on kind, database_generation and chain_seq (or cleared_at_ms). The root $schema keyword names the JSON Schema dialect; the payload property $schema names this schema.",
   "type": "object",
   "required": ["$schema", "kind", "database_generation"],
   "properties": {

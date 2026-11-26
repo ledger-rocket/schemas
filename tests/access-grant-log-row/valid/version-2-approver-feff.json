@@ -9,7 +9,7 @@
   "after_canonical": "7b226973737565725f6964223a2233222c227375626a6563745f636c61696d223a22737562227d",
   "alert": "issuer",
   "approver_issuer_id": "2",
-  "approver_subject": "﻿",
+  "approver_subject": "\ufeff",
   "before": null,
   "before_canonical": null,
   "chain_seq": "10",

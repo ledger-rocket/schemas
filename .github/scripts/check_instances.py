@@ -15,6 +15,7 @@ copies register first, and no retriever fetches a published schema.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -34,6 +35,30 @@ SUITES = (
     ("domain/access-grant-alert.schema.json", Path("tests/access-grant-alert")),
     ("domain/v1.0.0/access-grant-alert.schema.json", Path("tests/access-grant-alert")),
 )
+
+# The version 2 approver subject must hold a character outside Python's
+# str.isspace set, the test ledger-service's verifier applies through
+# str.strip(). The schema writes that set as an explicit class, so every
+# regex engine reads it alike; this keeps the class equal to str.isspace.
+APPROVER_CLASS_SCHEMAS = (
+    "domain/access-grant-log-row.schema.json",
+    "domain/v1.0.0/access-grant-log-row.schema.json",
+)
+
+
+def approver_class_problems(path: str, doc) -> list[str]:
+    pattern = doc["allOf"][0]["else"]["allOf"][0]["oneOf"][1]["properties"]["approver_subject"]["pattern"]
+    if "\\" in pattern:
+        # A backslash escape (\\S, \\s, \\uXXXX) is read differently by ECMAScript,
+        # Python re, RE2 and PCRE2; the class must hold literal code points.
+        return [f"{path}: the approver subject pattern holds a backslash escape"]
+    rx = re.compile(pattern)
+    wrong = [
+        f"U+{code:04X}"
+        for code in range(0x110000)
+        if not 0xD800 <= code <= 0xDFFF and bool(rx.search(chr(code))) == chr(code).isspace()
+    ]
+    return [f"{path}: approver subject class disagrees with str.isspace at {wrong[:5]}"] if wrong else []
 
 
 def load(path):
@@ -80,6 +105,12 @@ def main() -> int:
         failures.extend(f"{schema_path}: {line}" for line in found)
         if not found:
             print(f"ok -- {schema_path}: {valid} valid and {invalid} invalid fixture(s) behave")
+
+    for path in APPROVER_CLASS_SCHEMAS:
+        found = approver_class_problems(path, docs[path])
+        failures.extend(found)
+        if not found:
+            print(f"ok -- {path}: the approver subject class is the complement of str.isspace")
 
     for line in failures:
         print(f"error: {line}", file=sys.stderr)

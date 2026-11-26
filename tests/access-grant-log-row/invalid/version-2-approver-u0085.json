@@ -1,7 +1,7 @@
 {
   "base": "version-2-update.json",
   "set": {
-    "approver_subject": ""
+    "approver_subject": "\u0085"
   },
   "keyword": "oneOf",
   "path": "$"
