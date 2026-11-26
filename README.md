@@ -10,9 +10,13 @@ Hosted JSON Schemas describing LedgerRocket financial events, ledger templates, 
 | `domain/template.schema.json` | Ledger templates that transform events into transfers | https://ledger-rocket.github.io/schemas/domain/template.schema.json |
 | `domain/workflow.schema.json` | Workflow definitions that chain template executions | https://ledger-rocket.github.io/schemas/domain/workflow.schema.json |
 | `domain/expected-transfer.schema.json` | Expected transfer output for template validation/testing | https://ledger-rocket.github.io/schemas/domain/expected-transfer.schema.json |
+| `domain/access-grant-log-row.schema.json` | One ledger-service access-grant log row as the exporter writes it to the write-once audit store | https://ledger-rocket.github.io/schemas/domain/access-grant-log-row.schema.json |
+| `domain/access-grant-alert.schema.json` | One ledger-service access-grant alert on the alerts topic | https://ledger-rocket.github.io/schemas/domain/access-grant-alert.schema.json |
 | `common/defs.schema.json` | Shared `$defs` referenced by the domain schemas | https://ledger-rocket.github.io/schemas/common/defs.schema.json |
 
 Recent template change: `domain/template.schema.json` adds two optional top-level fields, and the published version stays at **v1.0.0**. `execution_class` names the template's execution class. `execution_approval` carries `mode` (`never`, `always` or `conditional`), a `description` that every mode except `never` requires, a `condition` that names a boolean variable of the template and that only `conditional` takes, and an optional `proposal_ttl` of at most 168 hours, such as `72h` or `7d`. A template without `execution_approval` posts without approval, as `never`. Under `conditional`, each example states `expected_approval`. No third party reads the template schema yet, so the fields change the current schema in place, with no version bump and no frozen copy; `domain/v1.0.0/template.schema.json` is unchanged. Each consumer takes the fields in its own ticket. accounting-rule-engine pins `domain/v1.0.0/template.schema.json` by path and moves to `domain/template.schema.json` in its own ticket. event-service2 bakes the latest `domain/template.schema.json` into its image at build time, and template-agent fetches the latest file at runtime, so each accepts the fields from its next build or fetch. An event-service2 image built before this change drops a template that carries either field, so accounting-rule-engine must not serve such a template in an environment until that environment's writer is rebuilt.
+
+New schemas: `domain/access-grant-log-row.schema.json` and `domain/access-grant-alert.schema.json`, each with its frozen `domain/v1.0.0/` copy. ledger-service writes one row object per access-grant log row to a write-once (S3 Object Lock) audit store, and publishes an alert for a row that carries one, or for the clear of an export stop. Each object and each alert carries a `$schema` property naming the frozen v1.0.0 URL. Row objects are the RFC 8785 bytes of a canonical form that refuses JSON numbers, so every integer in a row object is a decimal string; alerts are plain JSON with integers as numbers. Stored objects cite these files for their whole retention (at least 400 days), so a change to a frozen copy ships as a new version, not an edit.
 
 Recent event change: each `accounts` entry now carries `account_id` XOR `external_account_id` (exactly one; `purpose` stays required). `external_account_id` is the customer-supplied external account id, resolved to a Ledger Service account for the site. This matches the contract both Event Service engines already enforce (supplying both or neither is a 422) and relaxes the schema, so existing instances stay valid and the published version stays at **v1.0.0**.
 
@@ -43,6 +47,8 @@ domain/v1.0.0/event.schema.json
 domain/v1.0.0/template.schema.json
 domain/v1.0.0/workflow.schema.json
 domain/v1.0.0/expected-transfer.schema.json
+domain/v1.0.0/access-grant-log-row.schema.json
+domain/v1.0.0/access-grant-alert.schema.json
 ```
 
 ## Editor Integration

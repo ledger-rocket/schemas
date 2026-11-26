@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/access-grant-log-row.schema.json",
+  "version": "1.0.0",
+  "title": "AccessGrantLogRow",
+  "description": "One ledger-service access_grant_log row as the grant-log exporter writes it to the write-once audit store, at access-grant-log/<database_generation>/<chain_seq, 20 digits>.json. The object is the RFC 8785 bytes of canonical_v2, which refuses JSON numbers, so every integer is a decimal string. The root $schema keyword names the JSON Schema dialect; the payload property $schema names this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "log_id",
+    "chain_seq",
+    "prev_hash",
+    "row_hash",
+    "hash_version",
+    "site_id",
+    "change_type",
+    "actor_issuer_id",
+    "actor_subject",
+    "approver_issuer_id",
+    "approver_subject",
+    "pending_change_id",
+    "revision",
+    "reason",
+    "alert",
+    "created_at_ms",
+    "created_at_submillisecond_us",
+    "before",
+    "after",
+    "before_canonical",
+    "after_canonical"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "enum": [
+        "https://ledger-rocket.github.io/schemas/domain/access-grant-log-row.schema.json",
+        "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-log-row.schema.json"
+      ],
+      "description": "Published URL of the schema that describes this row object: the latest schema or the frozen v1.0.0 copy"
+    },
+    "log_id": {"$ref": "#/$defs/decimal"},
+    "chain_seq": {"$ref": "#/$defs/positiveDecimal"},
+    "prev_hash": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256Hex"}]},
+    "row_hash": {"$ref": "#/$defs/sha256Hex"},
+    "hash_version": {"type": "string", "enum": ["1", "2"]},
+    "site_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/positiveDecimal"}]},
+    "change_type": {"type": "string", "minLength": 1, "maxLength": 50},
+    "actor_issuer_id": {"$ref": "#/$defs/decimal"},
+    "actor_subject": {"type": "string", "minLength": 1, "maxLength": 255},
+    "approver_issuer_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/decimal"}]},
+    "approver_subject": {"oneOf": [{"type": "null"}, {"type": "string", "maxLength": 255}]},
+    "pending_change_id": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"}
+      ]
+    },
+    "revision": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/decimal"}]},
+    "reason": {"type": "string", "description": "Empty on a version 1 row"},
+    "alert": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1}]},
+    "created_at_ms": {
+      "$ref": "#/$defs/decimal",
+      "description": "Insert time under the chain lock, Unix milliseconds"
+    },
+    "created_at_submillisecond_us": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,2})$",
+      "description": "Microseconds within created_at_ms, 0 to 999. The row hash takes created_at as created_at_ms * 1000 + created_at_submillisecond_us microseconds."
+    },
+    "before": {"description": "Version 2: the document its canonical bytes hold. Version 1: PostgreSQL's jsonb::text rendering, which the version 1 hash covers."},
+    "after": {"description": "As before"},
+    "before_canonical": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/hex"}]},
+    "after_canonical": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/hex"}]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"hash_version": {"const": "1"}}},
+      "then": {
+        "properties": {
+          "before": {"type": ["string", "null"]},
+          "after": {"type": ["string", "null"]},
+          "before_canonical": {"type": "null"},
+          "after_canonical": {"type": "null"}
+        }
+      },
+      "else": {
+        "properties": {
+          "before": {"type": ["object", "null"]},
+          "after": {"type": ["object", "null"]}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "decimal": {"type": "string", "pattern": "^(0|[1-9][0-9]{0,18})$"},
+    "positiveDecimal": {"type": "string", "pattern": "^[1-9][0-9]{0,18}$"},
+    "sha256Hex": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "hex": {"type": "string", "pattern": "^([0-9a-f]{2})*$"}
+  }
+}
