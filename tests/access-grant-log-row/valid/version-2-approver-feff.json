@@ -1,0 +1,27 @@
+{
+  "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-log-row.schema.json",
+  "actor_issuer_id": "1",
+  "actor_subject": "member-live-1",
+  "after": {
+    "issuer_id": "3",
+    "subject_claim": "sub"
+  },
+  "after_canonical": "7b226973737565725f6964223a2233222c227375626a6563745f636c61696d223a22737562227d",
+  "alert": "issuer",
+  "approver_issuer_id": "2",
+  "approver_subject": "﻿",
+  "before": null,
+  "before_canonical": null,
+  "chain_seq": "10",
+  "change_type": "issuer.set",
+  "created_at_ms": "1795089600123",
+  "created_at_submillisecond_us": "456",
+  "hash_version": "2",
+  "log_id": "41",
+  "pending_change_id": null,
+  "prev_hash": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "reason": "add the dev issuer",
+  "revision": "4",
+  "row_hash": "fbc4b2c3ff08e635247fa340d1650522d443cc6404c2058f95874e91c7bfed8d",
+  "site_id": null
+}

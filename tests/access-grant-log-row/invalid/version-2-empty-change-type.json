@@ -1,0 +1,8 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "change_type": ""
+  },
+  "keyword": "minLength",
+  "path": "$.change_type"
+}

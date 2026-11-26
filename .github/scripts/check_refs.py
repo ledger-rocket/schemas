@@ -12,11 +12,12 @@ document (one root ``$id``, draft 2020-12, no nested ``$id`` rescoping refs).
 Those assumptions are asserted up front, so a future schema that breaks them
 fails loudly here rather than being resolved incorrectly.
 
-A frozen ``vX.Y.Z/`` copy either reuses the ``$id`` of its latest sibling
-(defs, event, expected-transfer) or carries its own versioned ``$id``
-(template, workflow, the access-grant schemas), so that one validator can
-load two versions. Reuse is allowed only between a latest schema and its
-frozen copies; any other ``$id`` reuse is not.
+A latest schema and its frozen ``vX.Y.Z/`` copy usually share one ``$id``:
+the latest URL (defs, event, expected-transfer) or the versioned URL
+(template, workflow). The access-grant schemas are the first pair whose
+latest and frozen copies carry different ``$id``s, so that one validator can
+load two versions of them. Reuse is allowed only between a latest schema and
+its frozen copies; any other ``$id`` reuse is not.
 """
 
 from __future__ import annotations

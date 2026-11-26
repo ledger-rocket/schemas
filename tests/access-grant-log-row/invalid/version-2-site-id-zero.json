@@ -1,0 +1,8 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "site_id": "0"
+  },
+  "keyword": "oneOf",
+  "path": "$.site_id"
+}

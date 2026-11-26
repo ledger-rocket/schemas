@@ -1,8 +1,0 @@
-{
-  "base": "version-1.json",
-  "set": {
-    "before_canonical": "7b7d"
-  },
-  "keyword": "type",
-  "path": "$.before_canonical"
-}

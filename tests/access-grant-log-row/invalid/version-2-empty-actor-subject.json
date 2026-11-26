@@ -1,0 +1,8 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "actor_subject": ""
+  },
+  "keyword": "minLength",
+  "path": "$.actor_subject"
+}
