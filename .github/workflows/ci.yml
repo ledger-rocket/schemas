@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: '3.14'
       - name: Install pinned validators
-        run: pip install "check-jsonschema==0.35.0" "jsonschema==4.25.1" "referencing==0.36.2"
+        run: pip install "check-jsonschema==0.35.0" "jsonschema==4.25.1" "referencing==0.36.2" "rfc3339-validator==0.1.4"
       - name: Validate every schema against its declared meta-schema
         run: |
           mapfile -t files < <(find . -path ./.git -prune -o -name '*.schema.json' -print | sort)

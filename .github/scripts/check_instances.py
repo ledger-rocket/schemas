@@ -6,7 +6,9 @@ is a full instance that must pass.
 Each ``<folder>/invalid/*.json`` names a ``base`` file in ``valid/``, a
 ``set`` of top-level keys to merge over that base, and the one error the merge
 must cause: its JSON Schema ``keyword`` and its error ``path`` (``json_path``),
-reported ``count`` times (default 1) where two subschemas refuse the same value.
+reported ``count`` times (default 1) where two subschemas refuse the same value,
+or an ``errors`` list of ``[keyword, path]`` pairs where one defect causes two
+different errors.
 The base passes as a valid fixture, so the error comes from the merged defect.
 
 Schemas resolve offline through the registry that check_refs.py builds: frozen
@@ -20,7 +22,7 @@ import re
 import sys
 from pathlib import Path
 
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
@@ -39,6 +41,14 @@ SUITES = [
     ("domain/access-grant-alert.schema.json", Path("tests/access-grant-alert")),
     ("domain/v1.0.0/access-grant-alert.schema.json", Path("tests/access-grant-alert")),
 ]
+# These suites assert ``format`` as well: the access-grant instants are parsed back
+# to the hashed microseconds, so an impossible date (2026-02-30) must fail here.
+FORMAT_SUITES = {
+    "domain/access-grant-log-row.schema.json",
+    "domain/v1.0.0/access-grant-log-row.schema.json",
+    "domain/access-grant-alert.schema.json",
+    "domain/v1.0.0/access-grant-alert.schema.json",
+}
 # Root ``examples`` of these schemas must validate against the schema that holds them.
 EXAMPLE_SCHEMAS = [
     "domain/v2.0.0/event.schema.json",
@@ -68,10 +78,17 @@ def main() -> int:
             uri=docs[path]["$id"],
             resource=Resource.from_contents(docs[path], default_specification=DRAFT202012),
         )
+    format_checker = FormatChecker()
+    if "date-time" not in format_checker.checkers:
+        # jsonschema registers date-time only when rfc3339-validator imports; without it
+        # the format suites would pass every impossible date.
+        print("error: date-time format checking needs rfc3339-validator", file=sys.stderr)
+        return 1
     failures = []
     counts = []
     for schema, folder in SUITES:
-        validator = Draft202012Validator(docs[schema], registry=registry)
+        checker = format_checker if schema in FORMAT_SUITES else None
+        validator = Draft202012Validator(docs[schema], registry=registry, format_checker=checker)
         valid = sorted((folder / "valid").glob("*.json"))
         invalid = sorted((folder / "invalid").glob("*.json"))
         if not valid or not invalid:
@@ -110,7 +127,10 @@ def check_suite(validator, folder, valid, invalid) -> list[str]:
             failures.append(f"{path}: expected no error, got {found}")
     for path in invalid:
         case = load(path)
-        want = [[case["keyword"], case["path"]]] * case.get("count", 1)
+        if "errors" in case:
+            want = sorted(case["errors"])
+        else:
+            want = [[case["keyword"], case["path"]]] * case.get("count", 1)
         if (found := errors({**load(folder / "valid" / case["base"]), **case["set"]})) != want:
             failures.append(f"{path}: expected {want}, got {found}")
     return failures

@@ -3,6 +3,14 @@
   "set": {
     "create_time": "1795089600123"
   },
-  "keyword": "pattern",
-  "path": "$.create_time"
+  "errors": [
+    [
+      "format",
+      "$.create_time"
+    ],
+    [
+      "pattern",
+      "$.create_time"
+    ]
+  ]
 }
