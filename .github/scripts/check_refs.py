@@ -12,8 +12,12 @@ document (one root ``$id``, draft 2020-12, no nested ``$id`` rescoping refs).
 Those assumptions are asserted up front, so a future schema that breaks them
 fails loudly here rather than being resolved incorrectly.
 
-Frozen ``vX.Y.Z/`` copies intentionally reuse the ``$id`` of their latest
-sibling; that specific collision is allowed, any other ``$id`` reuse is not.
+A latest schema and its ``v1.0.0/`` copy usually share one ``$id``: the
+latest URL (defs, event, expected-transfer) or the versioned URL (template,
+workflow). The ``v2.0.0/`` files and the access-grant ``v1.0.0/`` copies carry
+their own versioned ``$id``, different from the latest file's, so that one
+validator can load two versions of them. Reuse is allowed only between a
+latest schema and its frozen copies; any other ``$id`` reuse is not.
 """
 
 from __future__ import annotations
@@ -103,7 +107,7 @@ def main() -> int:
             print(f"error: {line}", file=sys.stderr)
         return 1
 
-    # Frozen copies register first so the latest sibling wins each $id collision.
+    # Frozen copies register first so the latest sibling wins each shared $id.
     registry = Registry()
     for path in sorted(docs, key=lambda p: (0 if is_frozen_copy(p) else 1, p)):
         doc = docs[path]

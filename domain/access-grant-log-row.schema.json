@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ledger-rocket.github.io/schemas/domain/access-grant-log-row.schema.json",
+  "version": "1.0.0",
+  "title": "AccessGrantLogRow",
+  "description": "One ledger-service access_grant_log row as the grant-log exporter writes it to the write-once audit store, at access-grant-log/<database_generation>/<chain_seq, 20 digits>.json. The object is the RFC 8785 bytes of canonical_v2, which refuses JSON numbers, so every integer is a decimal string. The root $schema keyword names the JSON Schema dialect; the payload property $schema names this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "log_id",
+    "chain_seq",
+    "prev_hash",
+    "row_hash",
+    "hash_version",
+    "site_id",
+    "change_type",
+    "actor_issuer_id",
+    "actor_subject",
+    "approver_issuer_id",
+    "approver_subject",
+    "pending_change_id",
+    "revision",
+    "reason",
+    "alert",
+    "create_time",
+    "create_submillisecond_micros",
+    "before",
+    "after",
+    "before_canonical",
+    "after_canonical"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-log-row.schema.json",
+      "description": "Published URL of the frozen schema version that describes this row object. A stored object keeps it for its whole retention, so it never names the latest URL, which a later version replaces."
+    },
+    "log_id": {"$ref": "#/$defs/decimal"},
+    "chain_seq": {"$ref": "#/$defs/positiveDecimal"},
+    "prev_hash": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256Hex"}]},
+    "row_hash": {"$ref": "#/$defs/sha256Hex"},
+    "hash_version": {"type": "string", "enum": ["1", "2"]},
+    "site_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/signedDecimal"}]},
+    "change_type": {"type": "string", "maxLength": 50},
+    "actor_issuer_id": {"$ref": "#/$defs/signedDecimal"},
+    "actor_subject": {"type": "string", "maxLength": 255},
+    "approver_issuer_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/signedDecimal"}]},
+    "approver_subject": {"oneOf": [{"type": "null"}, {"type": "string", "maxLength": 255}]},
+    "pending_change_id": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"}
+      ]
+    },
+    "revision": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/signedDecimal"}]},
+    "reason": {"type": "string", "description": "Empty on a version 1 row"},
+    "alert": {"oneOf": [{"type": "null"}, {"type": "string"}]},
+    "create_time": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Insert time under the chain lock, cut to the millisecond"
+    },
+    "create_submillisecond_micros": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,2})$",
+      "description": "Microseconds within the millisecond of create_time, 0 to 999. The row hash takes the insert time as the Unix milliseconds of create_time * 1000 + create_submillisecond_micros microseconds."
+    },
+    "before": {"description": "Version 2: the document its canonical bytes hold. Version 1: PostgreSQL's jsonb::text rendering, which the version 1 hash covers."},
+    "after": {"description": "As before"},
+    "before_canonical": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/hex"}]},
+    "after_canonical": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/hex"}]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"hash_version": {"const": "1"}}},
+      "then": {
+        "properties": {
+          "before": {"type": ["string", "null"]},
+          "after": {"type": ["string", "null"]}
+        }
+      },
+      "else": {
+        "description": "Version 2, the rules the verifier checks before an upload: a site_id is at least 1, actor_issuer_id and revision are not negative, change_type, actor_subject and alert are not empty, each document and its canonical bytes are both set or both null, a document holds no JSON number (canonical_v2 refuses them), the revision is set, and an approver is absent or a principal: an issuer ID of at least 1 and a subject with a character outside Python's str.isspace set, the test the verifier applies (the character class of ck_access_grant_log_reason, so every regex engine agrees). Version 1 rows get only what the database holds (signed integers, empty strings, a canonical value), because the verifier checks their columns not at all.",
+        "properties": {
+          "revision": {"$ref": "#/$defs/decimal"},
+          "site_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/positiveDecimal"}]},
+          "actor_issuer_id": {"$ref": "#/$defs/decimal"},
+          "change_type": {"minLength": 1},
+          "actor_subject": {"minLength": 1},
+          "alert": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1}]}
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {"properties": {"approver_issuer_id": {"type": "null"}, "approver_subject": {"type": "null"}}},
+              {"properties": {"approver_issuer_id": {"$ref": "#/$defs/positiveDecimal"}, "approver_subject": {"type": "string", "pattern": "[^\u0009-\u000d\u001c- \u0085   -     　]", "maxLength": 255}}}
+            ]
+          },
+          {
+            "oneOf": [
+              {"properties": {"before": {"type": "null"}, "before_canonical": {"type": "null"}}},
+              {"properties": {"before": {"$ref": "#/$defs/noNumberObject"}, "before_canonical": {"$ref": "#/$defs/canonicalHex"}}}
+            ]
+          },
+          {
+            "oneOf": [
+              {"properties": {"after": {"type": "null"}, "after_canonical": {"type": "null"}}},
+              {"properties": {"after": {"$ref": "#/$defs/noNumberObject"}, "after_canonical": {"$ref": "#/$defs/canonicalHex"}}}
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$",
+      "description": "Instant as an RFC 3339 UTC timestamp with Z and exactly 3 fraction digits (milliseconds), the form of common/v2.0.0 $defs/timestamp. The pattern also bounds the month, day, hour, minute and second, and refuses a leap second, which a verifier cannot parse back to the hashed microseconds; a validator that does not assert format still refuses most impossible instants."
+    },
+    "decimal": {"type": "string", "pattern": "^(0|[1-9][0-9]{0,18})$"},
+    "signedDecimal": {
+      "type": "string",
+      "pattern": "^(0|-?[1-9][0-9]{0,18})$",
+      "description": "A signed integer column the database does not constrain; version 1 rows may hold any value"
+    },
+    "positiveDecimal": {"type": "string", "pattern": "^[1-9][0-9]{0,18}$"},
+    "sha256Hex": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "hex": {"type": "string", "pattern": "^([0-9a-f]{2})*$"},
+    "canonicalHex": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{2}){2,}$",
+      "description": "The canonical bytes of a version 2 document as hex; the shortest document, {}, is 2 bytes"
+    },
+    "noNumber": {
+      "type": ["null", "boolean", "string", "array", "object"],
+      "items": {"$ref": "#/$defs/noNumber"},
+      "additionalProperties": {"$ref": "#/$defs/noNumber"}
+    },
+    "noNumberObject": {"type": "object", "additionalProperties": {"$ref": "#/$defs/noNumber"}}
+  }
+}

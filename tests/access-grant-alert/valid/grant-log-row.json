@@ -1,0 +1,14 @@
+{
+  "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-alert.schema.json",
+  "kind": "GRANT_LOG_ROW",
+  "database_generation": "0192f0a3-7b1c-7def-8a00-0123456789ab",
+  "chain_seq": 7,
+  "row_hash": "fe8ed216aa6059ace7405891f02689798dca4834a99be8195d93896048e71c86",
+  "site_id": null,
+  "change_type": "issuer.set",
+  "alert": "issuer",
+  "actor_issuer_id": 1,
+  "actor_subject": "member-live-1",
+  "create_time": "2026-11-19T12:00:00.123Z",
+  "object_key": "access-grant-log/0192f0a3-7b1c-7def-8a00-0123456789ab/00000000000000000007.json"
+}

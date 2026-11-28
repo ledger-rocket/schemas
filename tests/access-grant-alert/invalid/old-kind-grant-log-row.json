@@ -1,0 +1,7 @@
+{
+  "base": "grant-log-row.json",
+  "set": {
+    "kind": "grant-log-row"
+  },
+  "errors": [["enum", "$.kind"], ["oneOf", "$"]]
+}

@@ -1,0 +1,8 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "created_at_ms": "1795089600123"
+  },
+  "keyword": "additionalProperties",
+  "path": "$"
+}

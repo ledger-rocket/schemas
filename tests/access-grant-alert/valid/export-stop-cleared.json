@@ -1,0 +1,11 @@
+{
+  "$schema": "https://ledger-rocket.github.io/schemas/domain/v1.0.0/access-grant-alert.schema.json",
+  "kind": "EXPORT_STOP_CLEARED",
+  "database_generation": "0192f0a3-7b1c-7def-8a00-0123456789ab",
+  "stopped_reason": "chain_seq 9: a different object is at its key",
+  "stop_time": "2026-11-19T12:00:00.123Z",
+  "cleared_reason": "PRO-18211 drill",
+  "cleared_by": "operator@example.com",
+  "clear_time": "2026-11-19T12:00:00.123Z",
+  "exported_chain_seq": 8
+}

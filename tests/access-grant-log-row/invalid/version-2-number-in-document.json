@@ -1,0 +1,11 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "after": {
+      "issuer_id": 3,
+      "subject_claim": "sub"
+    }
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

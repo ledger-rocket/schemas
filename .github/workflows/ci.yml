@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: '3.14'
       - name: Install pinned validators
-        run: pip install "check-jsonschema==0.35.0" "jsonschema==4.25.1" "referencing==0.36.2"
+        run: pip install "check-jsonschema==0.35.0" "jsonschema==4.25.1" "referencing==0.36.2" "rfc3339-validator==0.1.4"
       - name: Validate every schema against its declared meta-schema
         run: |
           mapfile -t files < <(find . -path ./.git -prune -o -name '*.schema.json' -print | sort)
@@ -31,7 +31,7 @@ jobs:
           check-jsonschema --check-metaschema "${files[@]}"
       - name: Resolve cross-file $refs against working-tree copies
         run: python .github/scripts/check_refs.py
-      - name: Validate template fixtures against the working-tree schema
+      - name: Validate schema fixtures against the working-tree schemas
         run: python .github/scripts/check_instances.py
 
   lint-yaml:

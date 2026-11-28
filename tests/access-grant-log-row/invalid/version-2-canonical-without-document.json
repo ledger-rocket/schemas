@@ -1,0 +1,8 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "before_canonical": "7b7d"
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

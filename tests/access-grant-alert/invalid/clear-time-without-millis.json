@@ -1,0 +1,8 @@
+{
+  "base": "export-stop-cleared.json",
+  "set": {
+    "clear_time": "2026-11-19T12:00:00Z"
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

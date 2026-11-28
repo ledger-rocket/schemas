@@ -1,0 +1,8 @@
+{
+  "base": "grant-log-row.json",
+  "set": {
+    "object_key": "access-grant-log/0192f0a3-7b1c-7def-8a00-0123456789ab/00000000000000000007.quarantined.json"
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

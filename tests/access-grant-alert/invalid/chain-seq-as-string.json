@@ -1,0 +1,8 @@
+{
+  "base": "grant-log-row.json",
+  "set": {
+    "chain_seq": "7"
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

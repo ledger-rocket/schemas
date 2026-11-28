@@ -1,0 +1,8 @@
+{
+  "base": "grant-log-row.json",
+  "set": {
+    "create_time": 1795089600123
+  },
+  "keyword": "oneOf",
+  "path": "$"
+}

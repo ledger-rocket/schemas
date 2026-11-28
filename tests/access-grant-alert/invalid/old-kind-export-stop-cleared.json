@@ -1,0 +1,7 @@
+{
+  "base": "export-stop-cleared.json",
+  "set": {
+    "kind": "export-stop-cleared"
+  },
+  "errors": [["enum", "$.kind"], ["oneOf", "$"]]
+}

@@ -1,0 +1,8 @@
+{
+  "base": "grant-log-row.json",
+  "set": {
+    "$schema": "https://ledger-rocket.github.io/schemas/domain/access-grant-alert.schema.json"
+  },
+  "keyword": "const",
+  "path": "$['$schema']"
+}

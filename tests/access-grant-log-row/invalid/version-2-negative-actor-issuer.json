@@ -1,0 +1,8 @@
+{
+  "base": "version-2.json",
+  "set": {
+    "actor_issuer_id": "-1"
+  },
+  "keyword": "pattern",
+  "path": "$.actor_issuer_id"
+}
